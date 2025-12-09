@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.env
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.db
+*.db-shm
+*.db-wal
+sessions.db
+ngrok
+nohup.out
+server.log

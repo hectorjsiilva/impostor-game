@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Impostor - Jugador</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+
+    .join-section {
+      display: block;
+    }
+
+    .join-section.hidden {
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 1.1em;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1.1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.2em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .waiting-section {
+      display: none;
+    }
+
+    .waiting-section.active {
+      display: block;
+    }
+
+    .player-count {
+      font-size: 1.5em;
+      font-weight: 600;
+      color: #667eea;
+      margin: 20px 0;
+    }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+      margin: 25px 0;
+    }
+
+    .player-card {
+      background: #f8f9fa;
+      padding: 15px 10px;
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+    }
+
+    .player-card::before {
+      content: "👤";
+      display: block;
+      font-size: 2em;
+      margin-bottom: 8px;
+    }
+
+    .player-name {
+      font-size: 0.9em;
+      color: #333;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .role-section {
+      display: none;
+    }
+
+    .role-section.active {
+      display: block;
+    }
+
+    .role-card {
+      margin: 30px 0;
+      padding: 40px;
+      border-radius: 20px;
+      font-size: 3em;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: reveal 0.8s ease-out;
+    }
+
+    @keyframes reveal {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) rotateY(90deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+      }
+    }
+
+    .impostor {
+      background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .inocente {
+      background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .role-description {
+      font-size: 1.2em;
+      color: #666;
+      margin: 20px 0;
+      line-height: 1.6;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 25px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      .role-card {
+        font-size: 2em;
+        padding: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 El Impostor</h1>
+    <p class="subtitle">¿Quién es el impostor?</p>
+
+    <!-- Sección de unirse -->
+    <div id="joinSection" class="join-section">
+      <div class="form-group">
+        <label for="playerName">Tu nombre:</label>
+        <input type="text" id="playerName" placeholder="Ingresa tu nombre" maxlength="20">
+      </div>
+      <button class="btn" onclick="joinGame()">Unirse a la Partida</button>
+    </div>
+
+    <!-- Sección de espera -->
+    <div id="waitingSection" class="waiting-section">
+      <div class="alert alert-info">
+        ⏳ Esperando a que todos los jugadores se conecten...
+      </div>
+      
+      <div class="player-count" id="playerCount">0 / 0 jugadores</div>
+      
+      <div class="players-grid" id="playersGrid"></div>
+
+      <p style="color: #666; margin-top: 20px;">
+        El admin iniciará la partida cuando todos estén listos
+      </p>
+    </div>
+
+    <!-- Sección de rol revelado -->
+    <div id="roleSection" class="role-section">
+      <h2 style="color: #333; margin-bottom: 20px;">Tu rol es:</h2>
+      
+      <div id="roleCard" class="role-card"></div>
+      
+      <div id="roleDescription" class="role-description"></div>
+
+      <div class="alert alert-info" style="margin-top: 30px;">
+        💡 No muestres tu pantalla a los demás jugadores
+      </div>
+    </div>
+
+    <div id="alertContainer"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let gameId = null;
+    let playerName = null;
+
+    // Obtener gameId de la URL
+    const pathParts = window.location.pathname.split('/');
+    gameId = pathParts[pathParts.length - 1];
+
+    function showAlert(message, type = 'danger') {
+      const alertContainer = document.getElementById('alertContainer');
+      alertContainer.innerHTML = `
+        <div class="alert alert-${type}">
+          ${message}
+        </div>
+      `;
+      setTimeout(() => {
+        alertContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    function joinGame() {
+      playerName = document.getElementById('playerName').value.trim();
+
+      if (!playerName) {
+        showAlert('Por favor ingresa tu nombre', 'danger');
+        return;
+      }
+
+      if (playerName.length < 2) {
+        showAlert('El nombre debe tener al menos 2 caracteres', 'danger');
+        return;
+      }
+
+      // Emitir evento para unirse
+      socket.emit('join-game', { gameId, playerName });
+    }
+
+    // Eventos del socket
+    socket.on('joined-successfully', () => {
+      document.getElementById('joinSection').classList.add('hidden');
+      document.getElementById('waitingSection').classList.add('active');
+    });
+
+    socket.on('player-joined', (data) => {
+      updatePlayersGrid(data.players);
+      updatePlayerCount(data.currentCount, data.totalCount);
+    });
+
+    socket.on('player-left', (data) => {
+      updatePlayersGrid(data.players);
+      updatePlayerCount(data.currentCount, data.totalCount);
+      showAlert(`${data.playerName} ha abandonado la partida`, 'danger');
+    });
+
+    socket.on('game-started', (data) => {
+      document.getElementById('waitingSection').classList.remove('active');
+      document.getElementById('roleSection').classList.add('active');
+      
+      const roleCard = document.getElementById('roleCard');
+      const roleDescription = document.getElementById('roleDescription');
+
+      if (data.role === 'impostor') {
+        roleCard.textContent = '🔴 IMPOSTOR';
+        roleCard.className = 'role-card impostor';
+        roleDescription.innerHTML = `
+          <strong>¡Eres el impostor!</strong><br>
+          Tu objetivo es engañar a los demás sin ser descubierto. 
+          Mantén la calma y actúa con naturalidad.
+        `;
+      } else {
+        roleCard.textContent = '🟢 INOCENTE';
+        roleCard.className = 'role-card inocente';
+        roleDescription.innerHTML = `
+          <strong>Eres inocente</strong><br>
+          Tu objetivo es descubrir quién es el impostor. 
+          Observa cuidadosamente el comportamiento de todos.
+        `;
+      }
+    });
+
+    socket.on('game-reset', () => {
+      document.getElementById('roleSection').classList.remove('active');
+      document.getElementById('waitingSection').classList.add('active');
+      showAlert('La partida ha sido reiniciada', 'info');
+    });
+
+    socket.on('error', (data) => {
+      showAlert(data.message, 'danger');
+    });
+
+    function updatePlayersGrid(players) {
+      const grid = document.getElementById('playersGrid');
+      grid.innerHTML = '';
+
+      players.forEach(player => {
+        const card = document.createElement('div');
+        card.className = 'player-card';
+        
+        const name = document.createElement('div');
+        name.className = 'player-name';
+        name.textContent = player.name;
+        
+        card.appendChild(name);
+        grid.appendChild(card);
+      });
+    }
+
+    function updatePlayerCount(current, total) {
+      document.getElementById('playerCount').textContent = 
+        `${current} / ${total} jugadores`;
+    }
+
+    // Prevenir que el usuario cierre accidentalmente
+    window.addEventListener('beforeunload', (e) => {
+      if (document.getElementById('waitingSection').classList.contains('active') || 
+          document.getElementById('roleSection').classList.contains('active')) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
+</body>
+</html>

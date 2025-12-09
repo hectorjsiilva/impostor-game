@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Impostor - Panel de Admin</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 1.1em;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1.1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.2em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .game-link-container {
+      display: none;
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px dashed #667eea;
+    }
+
+    .game-link-container.active {
+      display: block;
+    }
+
+    .game-link {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 0.95em;
+      border: 1px solid #ddd;
+    }
+
+    .qr-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .players-list {
+      margin: 20px 0;
+    }
+
+    .player-item {
+      background: white;
+      padding: 10px 15px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+    }
+
+    .player-item::before {
+      content: "👤";
+      margin-right: 10px;
+      font-size: 1.2em;
+    }
+
+    .player-count {
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #667eea;
+      margin: 15px 0;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .copy-btn {
+      background: #667eea;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+
+    .copy-btn:hover {
+      background: #5568d3;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 25px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 El Impostor</h1>
+    <p class="subtitle">Panel de Administración</p>
+
+    <div id="setupForm">
+      <div class="form-group">
+        <label for="totalPlayers">Número total de jugadores:</label>
+        <input type="number" id="totalPlayers" min="3" max="20" value="6">
+      </div>
+
+      <div class="form-group">
+        <label for="impostorCount">Número de impostores:</label>
+        <input type="number" id="impostorCount" min="1" max="5" value="1">
+      </div>
+
+      <button class="btn btn-primary" onclick="createGame()">Crear Partida</button>
+    </div>
+
+    <div id="gameLinkContainer" class="game-link-container">
+      <h3 style="color: #333; margin-bottom: 15px;">🎮 Partida Creada</h3>
+      
+      <p style="color: #666; margin-bottom: 10px;">Comparte este enlace con los jugadores:</p>
+      <div class="game-link" id="gameLink"></div>
+      <button class="copy-btn" onclick="copyLink()">📋 Copiar Enlace</button>
+
+      <div class="player-count" id="playerCount">0 / 0 jugadores conectados</div>
+
+      <div class="players-list" id="playersList"></div>
+
+      <button class="btn btn-success" id="startBtn" onclick="startGame()" disabled>
+        🚀 Iniciar Partida
+      </button>
+      <button class="btn btn-secondary" onclick="resetGame()">
+        🔄 Reiniciar Partida
+      </button>
+      <button class="btn btn-secondary" onclick="newGame()">
+        ➕ Nueva Partida
+      </button>
+    </div>
+
+    <div id="alertContainer"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentGameId = null;
+    let currentGameLink = null;
+
+    function showAlert(message, type = 'success') {
+      const alertContainer = document.getElementById('alertContainer');
+      alertContainer.innerHTML = `
+        <div class="alert alert-${type}">
+          ${message}
+        </div>
+      `;
+      setTimeout(() => {
+        alertContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    async function createGame() {
+      const totalPlayers = parseInt(document.getElementById('totalPlayers').value);
+      const impostorCount = parseInt(document.getElementById('impostorCount').value);
+
+      if (impostorCount >= totalPlayers) {
+        showAlert('El número de impostores debe ser menor al total de jugadores', 'danger');
+        return;
+      }
+
+      if (totalPlayers < 3) {
+        showAlert('Se necesitan al menos 3 jugadores', 'danger');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/create-game', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ totalPlayers, impostorCount })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          currentGameId = data.gameId;
+          currentGameLink = data.link;
+          
+          document.getElementById('gameLink').textContent = data.link;
+          document.getElementById('setupForm').style.display = 'none';
+          document.getElementById('gameLinkContainer').classList.add('active');
+          
+          // Unirse como admin para monitorear
+          socket.emit('join-game-as-admin', { gameId: currentGameId });
+          
+          showAlert('¡Partida creada exitosamente!', 'success');
+        } else {
+          showAlert(data.error || 'Error al crear la partida', 'danger');
+        }
+      } catch (error) {
+        showAlert('Error de conexión al servidor', 'danger');
+      }
+    }
+
+    function copyLink() {
+      const linkText = document.getElementById('gameLink').textContent;
+      navigator.clipboard.writeText(linkText).then(() => {
+        showAlert('¡Enlace copiado al portapapeles!', 'success');
+      });
+    }
+
+    function startGame() {
+      if (currentGameId) {
+        socket.emit('start-game', { gameId: currentGameId });
+        showAlert('¡Partida iniciada! Los jugadores han recibido sus roles.', 'success');
+        document.getElementById('startBtn').disabled = true;
+      }
+    }
+
+    function resetGame() {
+      if (currentGameId) {
+        socket.emit('reset-game', { gameId: currentGameId });
+        document.getElementById('startBtn').disabled = false;
+        showAlert('Partida reiniciada. Los jugadores pueden volver a jugar.', 'success');
+      }
+    }
+
+    function newGame() {
+      currentGameId = null;
+      currentGameLink = null;
+      document.getElementById('setupForm').style.display = 'block';
+      document.getElementById('gameLinkContainer').classList.remove('active');
+      document.getElementById('playersList').innerHTML = '';
+      document.getElementById('startBtn').disabled = true;
+    }
+
+    // Escuchar eventos de jugadores
+    socket.on('player-joined', (data) => {
+      updatePlayersList(data.players);
+      updatePlayerCount(data.currentCount, data.totalCount);
+      
+      // Habilitar botón de inicio si hay suficientes jugadores
+      if (data.currentCount >= 3) {
+        document.getElementById('startBtn').disabled = false;
+      }
+    });
+
+    socket.on('player-left', (data) => {
+      updatePlayersList(data.players);
+      updatePlayerCount(data.currentCount, data.totalCount);
+      showAlert(`${data.playerName} ha abandonado la partida`, 'danger');
+      
+      if (data.currentCount < 3) {
+        document.getElementById('startBtn').disabled = true;
+      }
+    });
+
+    function updatePlayersList(players) {
+      const playersList = document.getElementById('playersList');
+      playersList.innerHTML = '<h4 style="color: #333; margin-bottom: 10px;">Jugadores conectados:</h4>';
+      
+      players.forEach(player => {
+        const playerItem = document.createElement('div');
+        playerItem.className = 'player-item';
+        playerItem.textContent = player.name;
+        playersList.appendChild(playerItem);
+      });
+    }
+
+    function updatePlayerCount(current, total) {
+      document.getElementById('playerCount').textContent = 
+        `${current} / ${total} jugadores conectados`;
+    }
+
+    socket.on('error', (data) => {
+      showAlert(data.message, 'danger');
+    });
+  </script>
+</body>
+</html>

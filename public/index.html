@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Impostor - Juego Multijugador Online</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-size: 2em;
+      font-weight: 800;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-buttons button {
+      padding: 10px 25px;
+      margin-left: 15px;
+      border: none;
+      border-radius: 25px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-login {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-signup {
+      background: linear-gradient(135deg, #ff0844 0%, #ff6b6b 100%);
+      color: white;
+    }
+
+    .btn-signup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 8, 68, 0.4);
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 100px 20px;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 4em;
+      margin-bottom: 20px;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      animation: fadeInDown 1s ease-out;
+    }
+
+    .hero p {
+      font-size: 1.5em;
+      margin-bottom: 40px;
+      opacity: 0.9;
+      animation: fadeInUp 1s ease-out 0.2s backwards;
+    }
+
+    .hero-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      animation: fadeInUp 1s ease-out 0.4s backwards;
+    }
+
+    .btn-hero {
+      padding: 18px 40px;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.2em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border: 3px solid white;
+    }
+
+    .btn-secondary:hover {
+      background: white;
+      color: #667eea;
+      transform: translateY(-3px);
+    }
+
+    /* Features */
+    .features {
+      padding: 80px 50px;
+      background: white;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+    }
+
+    .feature-card {
+      text-align: center;
+      padding: 40px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .feature-icon {
+      font-size: 4em;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.8em;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .feature-card p {
+      font-size: 1.1em;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .modal-header h2 {
+      font-size: 2em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .modal-header p {
+      color: #666;
+    }
+
+    .close {
+      float: right;
+      font-size: 2em;
+      font-weight: 700;
+      color: #999;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close:hover {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .form-switch {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+    }
+
+    .form-switch a {
+      color: #667eea;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .form-switch a:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .hero h1 {
+        font-size: 2.5em;
+      }
+
+      .hero p {
+        font-size: 1.2em;
+      }
+
+      .features {
+        padding: 40px 20px;
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">🎭 EL IMPOSTOR</div>
+    <div class="nav-buttons">
+      <button class="btn-login" onclick="openModal('login')">Iniciar Sesión</button>
+      <button class="btn-signup" onclick="openModal('signup')">Registrarse</button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>¿Quién es el Impostor?</h1>
+    <p>Juega online con amigos y descubre quién está mintiendo</p>
+    <div class="hero-buttons">
+      <button class="btn-hero btn-primary" onclick="openModal('signup')">Comenzar a Jugar</button>
+      <button class="btn-hero btn-secondary" onclick="scrollToFeatures()">Saber Más</button>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="feature-card">
+      <div class="feature-icon">🎮</div>
+      <h3>Multijugador</h3>
+      <p>Juega con hasta 20 personas simultáneamente en tiempo real</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>Cuenta Personal</h3>
+      <p>Crea tu perfil y guarda tus estadísticas de juego</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3>Ranking Global</h3>
+      <p>Compite con otros jugadores y escala posiciones</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Buscar Partidas</h3>
+      <p>Únete a partidas públicas o crea las tuyas propias</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Tiempo Real</h3>
+      <p>Tecnología WebSocket para una experiencia fluida</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Responsive</h3>
+      <p>Juega desde cualquier dispositivo: PC, tablet o móvil</p>
+    </div>
+  </section>
+
+  <!-- Modal Login -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('login')">&times;</span>
+      <div class="modal-header">
+        <h2>Iniciar Sesión</h2>
+        <p>Bienvenido de vuelta</p>
+      </div>
+      <div id="loginAlert"></div>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="loginUsername">Usuario o Email</label>
+          <input type="text" id="loginUsername" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <button type="submit" class="btn-submit">Entrar</button>
+      </form>
+      <div class="form-switch">
+        ¿No tienes cuenta? <a onclick="switchModal('login', 'signup')">Regístrate</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Signup -->
+  <div id="signupModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('signup')">&times;</span>
+      <div class="modal-header">
+        <h2>Crear Cuenta</h2>
+        <p>Únete a la comunidad</p>
+      </div>
+      <div id="signupAlert"></div>
+      <form id="signupForm" onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label for="signupUsername">Usuario</label>
+          <input type="text" id="signupUsername" required minlength="3" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Contraseña</label>
+          <input type="password" id="signupPassword" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label for="signupPasswordConfirm">Confirmar Contraseña</label>
+          <input type="password" id="signupPasswordConfirm" required minlength="6">
+        </div>
+        <button type="submit" class="btn-submit">Registrarse</button>
+      </form>
+      <div class="form-switch">
+        ¿Ya tienes cuenta? <a onclick="switchModal('signup', 'login')">Inicia Sesión</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openModal(type) {
+      document.getElementById(type + 'Modal').classList.add('active');
+    }
+
+    function closeModal(type) {
+      document.getElementById(type + 'Modal').classList.remove('active');
+    }
+
+    function switchModal(from, to) {
+      closeModal(from);
+      openModal(to);
+    }
+
+    function scrollToFeatures() {
+      document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showAlert(type, message, element) {
+      const alertDiv = document.getElementById(element);
+      alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      setTimeout(() => {
+        alertDiv.innerHTML = '';
+      }, 5000);
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('success', '¡Bienvenido! Redirigiendo...', 'loginAlert');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          showAlert('danger', data.error || 'Error al iniciar sesión', 'loginAlert');
+        }
+      } catch (error) {
+        showAlert('danger', 'Error de conexión', 'loginAlert');
+      }
+    }
+
+    async function handleSignup(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('signupUsername').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+
+      if (password !== passwordConfirm) {
+        showAlert('danger', 'Las contraseñas no coinciden', 'signupAlert');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('success', '¡Cuenta creada! Redirigiendo...', 'signupAlert');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          showAlert('danger', data.error || 'Error al crear cuenta', 'signupAlert');
+        }
+      } catch (error) {
+        showAlert('danger', 'Error de conexión', 'signupAlert');
+      }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>

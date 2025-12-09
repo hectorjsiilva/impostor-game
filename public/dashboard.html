@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - El Impostor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 1.2em;
+    }
+
+    .btn-logout {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: white;
+      color: #667eea;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1400px;
+      margin: 30px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 30px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      height: fit-content;
+    }
+
+    .stats-card {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 15px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 2em;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .mini-stat {
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .mini-stat-value {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .mini-stat-label {
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Main Content */
+    .main-content {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .section-header h2 {
+      font-size: 2em;
+      color: #333;
+    }
+
+    .btn-create {
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1em;
+    }
+
+    .btn-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab {
+      padding: 12px 25px;
+      background: none;
+      border: none;
+      color: #666;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-bottom: 3px solid transparent;
+      font-size: 1em;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab:hover {
+      color: #667eea;
+    }
+
+    /* Games List */
+    .games-list {
+      display: grid;
+      gap: 20px;
+    }
+
+    .game-card {
+      padding: 25px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .game-card:hover {
+      border-color: #667eea;
+      transform: translateX(5px);
+    }
+
+    .game-info h3 {
+      font-size: 1.4em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .game-details {
+      display: flex;
+      gap: 20px;
+      color: #666;
+      font-size: 0.95em;
+    }
+
+    .game-detail {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-join {
+      padding: 12px 30px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1em;
+    }
+
+    .btn-join:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 4em;
+      margin-bottom: 20px;
+    }
+
+    .empty-state p {
+      font-size: 1.2em;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      margin-bottom: 30px;
+    }
+
+    .modal-header h2 {
+      font-size: 2em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1em;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .btn-submit {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: white;
+      color: #666;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .game-card {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .game-details {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>🎭 EL IMPOSTOR</h1>
+    <div class="user-info">
+      <span class="user-name" id="userName">Cargando...</span>
+      <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h3 style="margin-bottom: 20px; color: #333;">📊 Tus Estadísticas</h3>
+      
+      <div class="stats-card">
+        <div class="stat-label">Partidas Jugadas</div>
+        <div class="stat-value" id="gamesPlayed">0</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="mini-stat">
+          <div class="mini-stat-value" id="gamesWon">0</div>
+          <div class="mini-stat-label">🏆 Ganadas</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-value" id="timesImpostor">0</div>
+          <div class="mini-stat-label">🔴 Impostor</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-value" id="timesInnocent">0</div>
+          <div class="mini-stat-label">🟢 Inocente</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-value" id="winRate">0%</div>
+          <div class="mini-stat-label">% Victoria</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="section-header">
+        <h2>Partidas</h2>
+        <button class="btn-create" onclick="openCreateGameModal()">➕ Crear Partida</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('public')">Partidas Públicas</button>
+        <button class="tab" onclick="switchTab('private')">Partida Privada</button>
+      </div>
+
+      <div id="publicGames" class="games-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <p>Buscando partidas disponibles...</p>
+        </div>
+      </div>
+
+      <div id="privateGames" class="games-list" style="display: none;">
+        <div style="max-width: 500px; margin: 0 auto;">
+          <h3 style="color: #333; margin-bottom: 20px; text-align: center;">🔗 Unirse con Código</h3>
+          <div class="form-group">
+            <label for="gameCode">Código de Partida</label>
+            <input type="text" id="gameCode" placeholder="Ej: a1b2c3d4" maxlength="8" style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.2em; text-align: center; text-transform: uppercase; letter-spacing: 2px;">
+          </div>
+          <button class="btn-join" onclick="joinByCode()" style="width: 100%; margin-top: 20px;">
+            🎮 Unirse a la Partida
+          </button>
+          <div id="codeError" style="margin-top: 20px;"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Crear Partida -->
+  <div id="createGameModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Crear Nueva Partida</h2>
+        <p style="color: #666;">Configura los detalles de tu partida</p>
+      </div>
+      <div id="createGameAlert"></div>
+      <form id="createGameForm" onsubmit="createGame(event)">
+        <div class="form-group">
+          <label for="gameName">Nombre de la Partida</label>
+          <input type="text" id="gameName" required maxlength="50" placeholder="Mi partida épica">
+        </div>
+        <div class="form-group">
+          <label for="totalPlayers">Número de Jugadores</label>
+          <input type="number" id="totalPlayers" min="3" max="20" value="6" required>
+        </div>
+        <div class="form-group">
+          <label for="impostorCount">Número de Impostores</label>
+          <input type="number" id="impostorCount" min="1" max="5" value="1" required>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="isPublic" checked> Partida pública
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeCreateGameModal()">Cancelar</button>
+          <button type="submit" class="btn-submit">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentUser = null;
+
+    // Cargar datos del usuario
+    async function loadUserData() {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (!response.ok) {
+          window.location.href = '/';
+          return;
+        }
+        
+        const data = await response.json();
+        currentUser = data;
+        
+        document.getElementById('userName').textContent = `👤 ${data.username}`;
+        document.getElementById('gamesPlayed').textContent = data.games_played;
+        document.getElementById('gamesWon').textContent = data.games_won;
+        document.getElementById('timesImpostor').textContent = data.times_impostor;
+        document.getElementById('timesInnocent').textContent = data.times_innocent;
+        
+        const winRate = data.games_played > 0 
+          ? Math.round((data.games_won / data.games_played) * 100)
+          : 0;
+        document.getElementById('winRate').textContent = `${winRate}%`;
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        window.location.href = '/';
+      }
+    }
+
+    // Cargar partidas públicas
+    async function loadPublicGames() {
+      try {
+        const response = await fetch('/api/games/public');
+        const games = await response.json();
+        
+        const container = document.getElementById('publicGames');
+        
+        if (games.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">😔</div>
+              <p>No hay partidas disponibles. ¡Sé el primero en crear una!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = games.map(game => `
+          <div class="game-card">
+            <div class="game-info">
+              <h3>${game.name}</h3>
+              <div class="game-details">
+                <div class="game-detail">
+                  <span>👥</span>
+                  <span>${game.current_players}/${game.total_players}</span>
+                </div>
+                <div class="game-detail">
+                  <span>🔴</span>
+                  <span>${game.impostor_count} impostor${game.impostor_count > 1 ? 'es' : ''}</span>
+                </div>
+                <div class="game-detail">
+                  <span>👤</span>
+                  <span>Por ${game.creator_name}</span>
+                </div>
+              </div>
+            </div>
+            <button class="btn-join" onclick="joinGame('${game.id}')">Unirse</button>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error al cargar partidas:', error);
+      }
+    }
+
+    // Cambiar tab
+    function switchTab(tab) {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (tab === 'public') {
+        document.getElementById('publicGames').style.display = 'grid';
+        document.getElementById('privateGames').style.display = 'none';
+        loadPublicGames();
+      } else {
+        document.getElementById('publicGames').style.display = 'none';
+        document.getElementById('privateGames').style.display = 'grid';
+      }
+    }
+
+    // Abrir modal crear partida
+    function openCreateGameModal() {
+      document.getElementById('createGameModal').classList.add('active');
+    }
+
+    function closeCreateGameModal() {
+      document.getElementById('createGameModal').classList.remove('active');
+    }
+
+    // Crear partida
+    async function createGame(event) {
+      event.preventDefault();
+      
+      const gameName = document.getElementById('gameName').value;
+      const totalPlayers = parseInt(document.getElementById('totalPlayers').value);
+      const impostorCount = parseInt(document.getElementById('impostorCount').value);
+      const isPublic = document.getElementById('isPublic').checked;
+      
+      try {
+        const response = await fetch('/api/games/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gameName, totalPlayers, impostorCount, isPublic })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          closeCreateGameModal();
+          window.location.href = `/admin-game/${data.gameId}`;
+        } else {
+          showAlert('danger', data.error, 'createGameAlert');
+        }
+      } catch (error) {
+        showAlert('danger', 'Error al crear partida', 'createGameAlert');
+      }
+    }
+
+    // Unirse a partida
+    function joinGame(gameId) {
+      window.location.href = `/game/${gameId}`;
+    }
+
+    // Unirse por código
+    function joinByCode() {
+      const code = document.getElementById('gameCode').value.trim().toLowerCase();
+      
+      if (!code) {
+        showAlert('danger', 'Por favor ingresa un código de partida', 'codeError');
+        return;
+      }
+
+      if (code.length !== 8) {
+        showAlert('danger', 'El código debe tener 8 caracteres', 'codeError');
+        return;
+      }
+
+      // Redirigir a la partida
+      window.location.href = `/game/${code}`;
+    }
+
+    // Logout
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/';
+    }
+
+    function showAlert(type, message, element) {
+      const alertDiv = document.getElementById(element);
+      alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      setTimeout(() => alertDiv.innerHTML = '', 5000);
+    }
+
+    // Actualizar partidas en tiempo real
+    socket.on('games-updated', () => {
+      loadPublicGames();
+    });
+
+    // Inicializar
+    loadUserData();
+    loadPublicGames();
+    
+    // Auto-actualizar partidas cada 5 segundos
+    setInterval(loadPublicGames, 5000);
+  </script>
+</body>
+</html>
