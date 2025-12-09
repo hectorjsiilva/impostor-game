@@ -44,6 +44,9 @@ app.use(express.static('public'));
 
 // Middleware de autenticación
 const requireAuth = (req, res, next) => {
+  console.log('🔐 Verificando autenticación - Session ID:', req.sessionID);
+  console.log('🔐 Usuario en sesión:', req.session?.userId);
+  
   if (req.session && req.session.userId) {
     next();
   } else {
@@ -99,8 +102,15 @@ app.post('/api/auth/signup', async (req, res) => {
     req.session.userId = user.id;
     req.session.username = user.username;
     
-    console.log('✅ Sesión guardada');
-    res.json({ success: true, user: { id: user.id, username: user.username } });
+    // Forzar guardar la sesión antes de responder
+    req.session.save((err) => {
+      if (err) {
+        console.error('❌ Error guardando sesión:', err);
+        return res.status(500).json({ error: 'Error al crear sesión' });
+      }
+      console.log('✅ Sesión guardada correctamente');
+      res.json({ success: true, user: { id: user.id, username: user.username } });
+    });
   } catch (error) {
     console.error('❌ Error en signup:', error);
     res.status(400).json({ error: error.message });
@@ -133,7 +143,15 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.username = user.username;
     
-    res.json({ success: true, user: { id: user.id, username: user.username } });
+    // Forzar guardar la sesión antes de responder
+    req.session.save((err) => {
+      if (err) {
+        console.error('❌ Error guardando sesión:', err);
+        return res.status(500).json({ error: 'Error al crear sesión' });
+      }
+      console.log('✅ Sesión guardada correctamente');
+      res.json({ success: true, user: { id: user.id, username: user.username } });
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error del servidor' });
   }
