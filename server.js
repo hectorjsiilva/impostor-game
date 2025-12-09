@@ -282,6 +282,26 @@ app.get('/api/game/:gameId', (req, res) => {
 io.on('connection', (socket) => {
   console.log('Usuario conectado:', socket.id);
 
+  // Admin se une a una partida para monitorear
+  socket.on('join-as-admin', ({ gameId }) => {
+    const game = games.get(gameId);
+    
+    if (!game) {
+      socket.emit('error', { message: 'Partida no encontrada' });
+      return;
+    }
+
+    socket.join(gameId);
+    console.log(`Admin se unió a monitorear partida ${gameId}`);
+    
+    // Enviar estado actual
+    socket.emit('player-joined', {
+      players: game.players.map(p => ({ name: p.name })),
+      currentCount: game.players.length,
+      totalCount: game.totalPlayers
+    });
+  });
+
   // Unirse a una partida
   socket.on('join-game', ({ gameId, playerName }) => {
     const game = games.get(gameId);

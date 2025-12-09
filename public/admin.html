@@ -318,7 +318,8 @@
           document.getElementById('gameLinkContainer').classList.add('active');
           
           // Unirse como admin para monitorear
-          socket.emit('join-game-as-admin', { gameId: currentGameId });
+          currentGameId = data.gameId;
+          socket.emit('join-as-admin', { gameId: currentGameId });
           
           showAlert('¡Partida creada exitosamente!', 'success');
         } else {
