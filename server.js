@@ -314,19 +314,25 @@ io.on('connection', (socket) => {
 
   // Unirse a una partida
   socket.on('join-game', ({ gameId, playerName, gameCode }) => {
+    console.log(`🎮 Intento de unión - GameID: ${gameId}, Player: ${playerName}, Code: ${gameCode}`);
     const game = games.get(gameId);
 
     if (!game) {
+      console.log('❌ Partida no encontrada');
       socket.emit('error', { message: 'Partida no encontrada' });
       return;
     }
     
+    console.log(`📊 Estado de la partida: ${game.players.length}/${game.totalPlayers} jugadores`);
+    
     // Verificar código si la partida es privada
     if (game.isPrivate && game.gameCode) {
       if (!gameCode || gameCode !== game.gameCode) {
+        console.log('❌ Código incorrecto');
         socket.emit('error', { message: 'Código incorrecto' });
         return;
       }
+      console.log('✅ Código correcto');
     }
 
     if (game.started) {
@@ -353,6 +359,8 @@ io.on('connection', (socket) => {
 
     game.players.push(player);
     socket.join(gameId);
+    
+    console.log(`✅ ${playerName} agregado. Total jugadores: ${game.players.length}`);
 
     // Actualizar contador en base de datos si es pública
     if (game.isPublic) {
@@ -361,11 +369,14 @@ io.on('connection', (socket) => {
     }
 
     // Notificar a todos los jugadores
-    io.to(gameId).emit('player-joined', {
+    const eventData = {
       players: game.players.map(p => ({ name: p.name })),
       currentCount: game.players.length,
       totalCount: game.totalPlayers
-    });
+    };
+    
+    console.log(`📡 Emitiendo player-joined a sala ${gameId}:`, eventData);
+    io.to(gameId).emit('player-joined', eventData);
 
     socket.emit('joined-successfully', { gameId });
 

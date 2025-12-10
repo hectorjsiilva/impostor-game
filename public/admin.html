@@ -359,8 +359,14 @@
           document.getElementById('gameLinkContainer').classList.add('active');
           
           // Unirse como jugador (el admin también juega)
-          currentGameId = data.gameId;
-          socket.emit('join-game', { gameId: currentGameId, playerName: adminName });
+          // Incluir el código si es privada
+          const joinData = { gameId: currentGameId, playerName: adminName };
+          if (data.gameCode) {
+            joinData.gameCode = data.gameCode;
+          }
+          
+          console.log('🎮 Admin uniéndose como jugador:', joinData);
+          socket.emit('join-game', joinData);
           
           showAlert('¡Partida creada exitosamente!', 'success');
         } else {
@@ -405,6 +411,7 @@
 
     // Escuchar eventos de jugadores
     socket.on('player-joined', (data) => {
+      console.log('👥 Evento player-joined recibido:', data);
       updatePlayersList(data.players);
       updatePlayerCount(data.currentCount, data.totalCount);
       
@@ -425,6 +432,7 @@
     });
 
     function updatePlayersList(players) {
+      console.log('📝 Actualizando lista de jugadores:', players);
       const playersList = document.getElementById('playersList');
       playersList.innerHTML = '<h4 style="color: #333; margin-bottom: 10px;">Jugadores conectados:</h4>';
       
@@ -437,6 +445,7 @@
     }
 
     function updatePlayerCount(current, total) {
+      console.log('🔢 Actualizando contador:', current, '/', total);
       document.getElementById('playerCount').textContent = 
         `${current} / ${total} jugadores conectados`;
     }
