@@ -358,13 +358,6 @@
           document.getElementById('setupForm').style.display = 'none';
           document.getElementById('gameLinkContainer').classList.add('active');
           
-          // Guardar datos del admin en localStorage para auto-unirse después
-          localStorage.setItem('adminGameId', currentGameId);
-          localStorage.setItem('adminName', adminName);
-          if (data.gameCode) {
-            localStorage.setItem('adminGameCode', data.gameCode);
-          }
-          
           // Unirse como jugador (el admin también juega)
           // Incluir el código si es privada
           const joinData = { gameId: currentGameId, playerName: adminName };
