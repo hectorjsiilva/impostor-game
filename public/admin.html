@@ -290,6 +290,7 @@
     const socket = io();
     let currentGameId = null;
     let currentGameLink = null;
+    let adminName = null; // Variable global para el nombre del admin
 
     function showAlert(message, type = 'success') {
       const alertContainer = document.getElementById('alertContainer');
@@ -304,7 +305,7 @@
     }
 
     async function createGame() {
-      const adminName = document.getElementById('adminName').value.trim();
+      adminName = document.getElementById('adminName').value.trim(); // Asignar a variable global
       const totalPlayers = parseInt(document.getElementById('totalPlayers').value);
       const impostorCount = parseInt(document.getElementById('impostorCount').value);
 
