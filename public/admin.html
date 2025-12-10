@@ -56,7 +56,8 @@
       font-size: 1.1em;
     }
 
-    input[type="number"] {
+    input[type="number"],
+    input[type="text"] {
       width: 100%;
       padding: 12px;
       border: 2px solid #ddd;
@@ -65,7 +66,8 @@
       transition: border-color 0.3s;
     }
 
-    input[type="number"]:focus {
+    input[type="number"]:focus,
+    input[type="text"]:focus {
       outline: none;
       border-color: #667eea;
     }
@@ -229,6 +231,11 @@
 
     <div id="setupForm">
       <div class="form-group">
+        <label for="adminName">Tu nombre (Admin/Jugador):</label>
+        <input type="text" id="adminName" placeholder="Ingresa tu nombre" maxlength="20" required>
+      </div>
+
+      <div class="form-group">
         <label for="totalPlayers">Número total de jugadores:</label>
         <input type="number" id="totalPlayers" min="3" max="20" value="6">
       </div>
@@ -285,8 +292,19 @@
     }
 
     async function createGame() {
+      const adminName = document.getElementById('adminName').value.trim();
       const totalPlayers = parseInt(document.getElementById('totalPlayers').value);
       const impostorCount = parseInt(document.getElementById('impostorCount').value);
+
+      if (!adminName) {
+        showAlert('Por favor ingresa tu nombre', 'danger');
+        return;
+      }
+
+      if (adminName.length < 2) {
+        showAlert('El nombre debe tener al menos 2 caracteres', 'danger');
+        return;
+      }
 
       if (impostorCount >= totalPlayers) {
         showAlert('El número de impostores debe ser menor al total de jugadores', 'danger');
@@ -317,9 +335,9 @@
           document.getElementById('setupForm').style.display = 'none';
           document.getElementById('gameLinkContainer').classList.add('active');
           
-          // Unirse como admin para monitorear
+          // Unirse como jugador (el admin también juega)
           currentGameId = data.gameId;
-          socket.emit('join-as-admin', { gameId: currentGameId });
+          socket.emit('join-game', { gameId: currentGameId, playerName: adminName });
           
           showAlert('¡Partida creada exitosamente!', 'success');
         } else {
@@ -402,6 +420,12 @@
 
     socket.on('error', (data) => {
       showAlert(data.message, 'danger');
+    });
+
+    // El admin también recibe su rol cuando inicia la partida
+    socket.on('game-started', (data) => {
+      // Redirigir a la pantalla de jugador para ver el rol
+      window.location.href = `/game/${currentGameId}`;
     });
   </script>
 </body>
