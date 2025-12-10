@@ -456,7 +456,11 @@
 
     // El admin también recibe su rol cuando inicia la partida
     socket.on('game-started', (data) => {
-      // Redirigir a la pantalla de jugador para ver el rol
+      // Guardar temporalmente el nombre del admin para la página de juego
+      sessionStorage.setItem('autoJoinName', adminName);
+      sessionStorage.setItem('autoJoinGameId', currentGameId);
+      
+      // Redirigir a la pantalla de jugador
       window.location.href = `/game/${currentGameId}`;
     });
   </script>

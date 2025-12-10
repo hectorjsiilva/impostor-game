@@ -559,6 +559,49 @@
     const pathParts = window.location.pathname.split('/');
     gameId = pathParts[pathParts.length - 1];
     
+    // Verificar si viene del admin (auto-unirse inmediatamente)
+    async function checkAdminAutoJoin() {
+      const autoJoinName = sessionStorage.getItem('autoJoinName');
+      const autoJoinGameId = sessionStorage.getItem('autoJoinGameId');
+      
+      if (autoJoinName && autoJoinGameId === gameId) {
+        console.log('👑 Admin auto-join detectado');
+        playerName = autoJoinName;
+        
+        // Limpiar sessionStorage
+        sessionStorage.removeItem('autoJoinName');
+        sessionStorage.removeItem('autoJoinGameId');
+        
+        // Ocultar formulario
+        document.getElementById('joinSection').classList.add('hidden');
+        
+        // Mostrar perfil
+        document.getElementById('playerProfile').style.display = 'block';
+        document.getElementById('profileName').textContent = playerName;
+        
+        // Verificar estado del juego
+        try {
+          const response = await fetch(`/api/game/${gameId}`);
+          const data = await response.json();
+          
+          if (data.started) {
+            // El juego ya empezó, el socket ya debe tener la info
+            console.log('El juego ya está iniciado, esperando evento game-started...');
+            // La pantalla de juego se mostrará cuando llegue el evento 'game-started'
+          } else {
+            // Mostrar sala de espera
+            document.getElementById('waitingSection').classList.add('active');
+          }
+        } catch (error) {
+          console.error('Error verificando estado del juego:', error);
+          document.getElementById('waitingSection').classList.add('active');
+        }
+        
+        return true;
+      }
+      return false;
+    }
+    
     // Verificar si la partida es privada
     async function checkGamePrivacy() {
       try {
@@ -574,7 +617,12 @@
     }
     
     // Ejecutar al cargar
-    checkGamePrivacy();
+    (async () => {
+      const isAdmin = await checkAdminAutoJoin();
+      if (!isAdmin) {
+        await checkGamePrivacy();
+      }
+    })();
 
     function showAlert(message, type = 'danger') {
       const alertContainer = document.getElementById('alertContainer');
