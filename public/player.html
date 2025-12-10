@@ -559,6 +559,34 @@
     const pathParts = window.location.pathname.split('/');
     gameId = pathParts[pathParts.length - 1];
     
+    // Verificar si es el admin (auto-unirse)
+    function checkIfAdmin() {
+      const adminGameId = localStorage.getItem('adminGameId');
+      const adminName = localStorage.getItem('adminName');
+      const adminGameCode = localStorage.getItem('adminGameCode');
+      
+      if (adminGameId === gameId && adminName) {
+        console.log('👑 Admin detectado, auto-uniéndose...');
+        playerName = adminName;
+        
+        // Unirse automáticamente
+        const joinData = { gameId, playerName };
+        if (adminGameCode) {
+          joinData.gameCode = adminGameCode;
+        }
+        
+        socket.emit('join-game', joinData);
+        
+        // Limpiar localStorage después de unirse
+        localStorage.removeItem('adminGameId');
+        localStorage.removeItem('adminName');
+        localStorage.removeItem('adminGameCode');
+        
+        return true;
+      }
+      return false;
+    }
+    
     // Verificar si la partida es privada
     async function checkGamePrivacy() {
       try {
@@ -573,7 +601,10 @@
       }
     }
     
-    checkGamePrivacy();
+    // Ejecutar al cargar
+    if (!checkIfAdmin()) {
+      checkGamePrivacy();
+    }
 
     function showAlert(message, type = 'danger') {
       const alertContainer = document.getElementById('alertContainer');
