@@ -288,6 +288,24 @@ app.get('/api/game/:gameId', (req, res) => {
   });
 });
 
+// Función auxiliar para pasar al siguiente turno
+function nextTurn(gameId, io, games) {
+  const game = games.get(gameId);
+  if (!game || !game.started) return;
+
+  game.currentTurn = (game.currentTurn + 1) % game.players.length;
+  game.turnPhase = 'writing';
+
+  console.log(`➡️ Turno de ${game.players[game.currentTurn].name}`);
+
+  io.to(gameId).emit('next-turn', {
+    currentTurn: game.currentTurn,
+    playerName: game.players[game.currentTurn].name,
+    phase: 'writing',
+    duration: 45000
+  });
+}
+
 // WebSocket connections
 io.on('connection', (socket) => {
   console.log('Usuario conectado:', socket.id);
@@ -402,6 +420,16 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Lista de palabras secretas
+    const palabras = [
+      'GATO', 'PERRO', 'PLAYA', 'MONTAÑA', 'PIZZA', 'HELADO', 
+      'CINE', 'MÚSICA', 'LIBRO', 'CAFÉ', 'FÚTBOL', 'VIAJE',
+      'LUNA', 'SOL', 'ÁRBOL', 'FLOR', 'MAR', 'RÍO',
+      'CIUDAD', 'PUEBLO', 'CASA', 'COCHE', 'AVIÓN', 'TREN'
+    ];
+    
+    const palabraSecreta = palabras[Math.floor(Math.random() * palabras.length)];
+
     // Asignar roles aleatoriamente
     const playerIndices = Array.from({ length: game.players.length }, (_, i) => i);
     const shuffled = playerIndices.sort(() => Math.random() - 0.5);
@@ -411,9 +439,14 @@ io.on('connection', (socket) => {
 
     game.players.forEach((player, index) => {
       player.role = impostorIndices.includes(index) ? 'impostor' : 'inocente';
+      player.word = player.role === 'impostor' ? null : palabraSecreta;
     });
 
     game.started = true;
+    game.palabraSecreta = palabraSecreta;
+    game.currentTurn = 0; // Índice del jugador actual
+    game.turnPhase = 'revealing'; // revealing, writing, chatting
+    game.messages = [];
 
     // Actualizar estado en base de datos
     if (game.isPublic) {
@@ -421,14 +454,86 @@ io.on('connection', (socket) => {
       io.emit('games-updated');
     }
 
-    // Enviar rol a cada jugador
-    game.players.forEach(player => {
+    // Enviar información completa a cada jugador
+    game.players.forEach((player, index) => {
       io.to(player.id).emit('game-started', {
-        role: player.role
+        role: player.role,
+        word: player.word,
+        playerIndex: index,
+        allPlayers: game.players.map(p => ({ name: p.name })),
+        currentTurn: game.currentTurn,
+        totalPlayers: game.players.length
       });
     });
 
-    console.log(`Partida ${gameId} iniciada con ${game.impostorCount} impostor(es)`);
+    console.log(`🎮 Partida ${gameId} iniciada - Palabra: ${palabraSecreta}`);
+  });
+
+  // Jugador escribe su palabra
+  socket.on('submit-word', ({ gameId, word }) => {
+    const game = games.get(gameId);
+    if (!game || !game.started) return;
+
+    const playerIndex = game.players.findIndex(p => p.id === socket.id);
+    if (playerIndex !== game.currentTurn) return; // No es su turno
+
+    console.log(`📝 ${game.players[playerIndex].name} escribió: ${word}`);
+
+    // Notificar a todos que el jugador escribió su palabra
+    io.to(gameId).emit('word-submitted', {
+      playerIndex,
+      playerName: game.players[playerIndex].name,
+      word
+    });
+
+    // Cambiar a fase de chat
+    game.turnPhase = 'chatting';
+    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 90000 });
+
+    // Después de 90 segundos, pasar al siguiente turno
+    setTimeout(() => {
+      if (game.started && game.turnPhase === 'chatting') {
+        nextTurn(gameId, io, games);
+      }
+    }, 90000);
+  });
+
+  // Tiempo agotado para escribir palabra
+  socket.on('turn-timeout', ({ gameId }) => {
+    const game = games.get(gameId);
+    if (!game || !game.started) return;
+
+    console.log(`⏱️ Tiempo agotado para ${game.players[game.currentTurn].name}`);
+
+    // Cambiar a fase de chat
+    game.turnPhase = 'chatting';
+    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 90000 });
+
+    // Después de 90 segundos, pasar al siguiente turno
+    setTimeout(() => {
+      if (game.started && game.turnPhase === 'chatting') {
+        nextTurn(gameId, io, games);
+      }
+    }, 90000);
+  });
+
+  // Mensaje de chat
+  socket.on('send-message', ({ gameId, message }) => {
+    const game = games.get(gameId);
+    if (!game || !game.started) return;
+
+    const player = game.players.find(p => p.id === socket.id);
+    if (!player) return;
+
+    const chatMessage = {
+      playerName: player.name,
+      message,
+      timestamp: Date.now()
+    };
+
+    game.messages.push(chatMessage);
+
+    io.to(gameId).emit('new-message', chatMessage);
   });
 
   // Reiniciar partida
