@@ -245,11 +245,23 @@
         <input type="number" id="impostorCount" min="1" max="5" value="1">
       </div>
 
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="isPrivate" checked> Partida Privada (con código)
+        </label>
+      </div>
+
       <button class="btn btn-primary" onclick="createGame()">Crear Partida</button>
     </div>
 
     <div id="gameLinkContainer" class="game-link-container">
       <h3 style="color: #333; margin-bottom: 15px;">🎮 Partida Creada</h3>
+      
+      <div id="gameCodeBox" style="background: #fff3cd; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #ffc107; display: none;">
+        <h4 style="color: #856404; margin-bottom: 10px;">🔐 Código de Partida Privada:</h4>
+        <div style="font-size: 2em; font-weight: 800; color: #856404; letter-spacing: 3px; font-family: monospace;" id="gameCode"></div>
+        <p style="color: #856404; margin-top: 10px; font-size: 0.9em;">Comparte este código con los jugadores</p>
+      </div>
       
       <p style="color: #666; margin-bottom: 10px;">Comparte este enlace con los jugadores:</p>
       <div class="game-link" id="gameLink"></div>
@@ -317,12 +329,14 @@
       }
 
       try {
+        const isPrivate = document.getElementById('isPrivate').checked;
+        
         const response = await fetch('/api/create-game', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ totalPlayers, impostorCount })
+          body: JSON.stringify({ totalPlayers, impostorCount, isPrivate })
         });
 
         const data = await response.json();
@@ -332,6 +346,15 @@
           currentGameLink = data.link;
           
           document.getElementById('gameLink').textContent = data.link;
+          
+          // Mostrar código si la partida es privada
+          if (data.gameCode) {
+            document.getElementById('gameCodeBox').style.display = 'block';
+            document.getElementById('gameCode').textContent = data.gameCode;
+          } else {
+            document.getElementById('gameCodeBox').style.display = 'none';
+          }
+          
           document.getElementById('setupForm').style.display = 'none';
           document.getElementById('gameLinkContainer').classList.add('active');
           

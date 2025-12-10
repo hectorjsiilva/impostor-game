@@ -72,8 +72,8 @@ app.get('/admin-game/:gameId', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Ruta para jugadores
-app.get('/game/:gameId', requireAuth, (req, res) => {
+// Ruta para jugadores (sin requerir autenticación previa)
+app.get('/game/:gameId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'player.html'));
 });
 
@@ -235,7 +235,7 @@ app.get('/api/games/public', (req, res) => {
 
 // API para crear nueva partida (legacy - mantener para compatibilidad)
 app.post('/api/create-game', (req, res) => {
-  const { totalPlayers, impostorCount } = req.body;
+  const { totalPlayers, impostorCount, isPrivate } = req.body;
   
   if (!totalPlayers || !impostorCount) {
     return res.status(400).json({ error: 'Faltan parámetros' });
@@ -246,6 +246,7 @@ app.post('/api/create-game', (req, res) => {
   }
 
   const gameId = uuidv4().substring(0, 8);
+  const gameCode = isPrivate ? Math.floor(1000 + Math.random() * 9000).toString() : null;
   
   games.set(gameId, {
     id: gameId,
@@ -253,13 +254,21 @@ app.post('/api/create-game', (req, res) => {
     impostorCount: parseInt(impostorCount),
     players: [],
     started: false,
-    roles: []
+    roles: [],
+    isPrivate: !!isPrivate,
+    gameCode: gameCode
   });
 
-  res.json({ 
+  const response = { 
     gameId, 
     link: `${req.protocol}://${req.get('host')}/game/${gameId}` 
-  });
+  };
+  
+  if (gameCode) {
+    response.gameCode = gameCode;
+  }
+  
+  res.json(response);
 });
 
 // API para obtener info de la partida
@@ -274,7 +283,8 @@ app.get('/api/game/:gameId', (req, res) => {
     id: game.id,
     totalPlayers: game.totalPlayers,
     currentPlayers: game.players.length,
-    started: game.started
+    started: game.started,
+    isPrivate: game.isPrivate || false
   });
 });
 
@@ -303,12 +313,20 @@ io.on('connection', (socket) => {
   });
 
   // Unirse a una partida
-  socket.on('join-game', ({ gameId, playerName }) => {
+  socket.on('join-game', ({ gameId, playerName, gameCode }) => {
     const game = games.get(gameId);
 
     if (!game) {
       socket.emit('error', { message: 'Partida no encontrada' });
       return;
+    }
+    
+    // Verificar código si la partida es privada
+    if (game.isPrivate && game.gameCode) {
+      if (!gameCode || gameCode !== game.gameCode) {
+        socket.emit('error', { message: 'Código incorrecto' });
+        return;
+      }
     }
 
     if (game.started) {

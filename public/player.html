@@ -258,6 +258,12 @@
         <label for="playerName">Tu nombre:</label>
         <input type="text" id="playerName" placeholder="Ingresa tu nombre" maxlength="20">
       </div>
+      
+      <div id="codeSection" class="form-group" style="display: none;">
+        <label for="gameCode">Código de la partida:</label>
+        <input type="text" id="gameCode" placeholder="Ingresa el código" maxlength="4" style="text-align: center; font-size: 1.5em; font-weight: 700; letter-spacing: 2px;">
+      </div>
+      
       <button class="btn" onclick="joinGame()">Unirse a la Partida</button>
     </div>
 
@@ -301,6 +307,22 @@
     // Obtener gameId de la URL
     const pathParts = window.location.pathname.split('/');
     gameId = pathParts[pathParts.length - 1];
+    
+    // Verificar si la partida es privada
+    async function checkGamePrivacy() {
+      try {
+        const response = await fetch(`/api/game/${gameId}`);
+        const data = await response.json();
+        
+        if (data.isPrivate) {
+          document.getElementById('codeSection').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error verificando privacidad de la partida:', error);
+      }
+    }
+    
+    checkGamePrivacy();
 
     function showAlert(message, type = 'danger') {
       const alertContainer = document.getElementById('alertContainer');
@@ -326,9 +348,18 @@
         showAlert('El nombre debe tener al menos 2 caracteres', 'danger');
         return;
       }
+      
+      // Verificar código si es necesario
+      const codeInput = document.getElementById('gameCode');
+      const gameCode = codeInput.value.trim();
+      
+      if (codeInput.parentElement.style.display !== 'none' && !gameCode) {
+        showAlert('Por favor ingresa el código de la partida', 'danger');
+        return;
+      }
 
       // Emitir evento para unirse
-      socket.emit('join-game', { gameId, playerName });
+      socket.emit('join-game', { gameId, playerName, gameCode: gameCode || null });
     }
 
     // Eventos del socket
