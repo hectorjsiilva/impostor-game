@@ -459,6 +459,11 @@
     <h1>🎭 El Impostor</h1>
     <p class="subtitle">¿Quién es el impostor?</p>
 
+    <!-- Perfil del jugador -->
+    <div id="playerProfile" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: 600; font-size: 1.1em;">
+      👤 <span id="profileName"></span>
+    </div>
+
     <!-- Sección de unirse -->
     <div id="joinSection" class="join-section">
       <div class="form-group">
@@ -492,10 +497,10 @@
     <!-- Sección de juego -->
     <div id="gameSection" class="game-section">
       <!-- Mi carta con palabra/rol -->
-      <div id="myCard" class="my-card" onclick="revealCard()">
+      <div id="myCard" class="my-card" onclick="toggleCard()">
         <div class="card-front" id="cardFront">
           <h3>🎴 Tu Carta</h3>
-          <p style="color: #666;">Haz clic para revelar</p>
+          <p style="color: #666;">Haz clic para revelar/ocultar</p>
         </div>
         <div class="card-back" id="cardBack">
           <div class="card-word" id="cardWord"></div>
@@ -525,7 +530,7 @@
       <div class="chat-section">
         <div class="chat-messages" id="chatMessages">
           <div style="text-align: center; color: #666; padding: 20px;">
-            💬 El chat se habilitará después de cada turno
+            💬 Chat habilitado - Escribe cuando quieras
           </div>
         </div>
         <div class="chat-input-area">
@@ -533,9 +538,8 @@
                  class="chat-input" 
                  id="chatInput" 
                  placeholder="Escribe un mensaje..." 
-                 maxlength="200"
-                 disabled>
-          <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()" disabled>
+                 maxlength="200">
+          <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">
             Enviar
           </button>
         </div>
@@ -613,6 +617,10 @@
     socket.on('joined-successfully', () => {
       document.getElementById('joinSection').classList.add('hidden');
       document.getElementById('waitingSection').classList.add('active');
+      
+      // Mostrar perfil
+      document.getElementById('playerProfile').style.display = 'block';
+      document.getElementById('profileName').textContent = playerName;
     });
 
     socket.on('player-joined', (data) => {
@@ -695,13 +703,24 @@
     let timerInterval = null;
     let timeRemaining = 0;
 
-    function revealCard() {
-      if (window.gameData.cardRevealed) return;
+    function toggleCard() {
+      const cardFront = document.getElementById('cardFront');
+      const cardBack = document.getElementById('cardBack');
+      const myCard = document.getElementById('myCard');
       
-      document.getElementById('cardFront').style.display = 'none';
-      document.getElementById('cardBack').classList.add('active');
-      document.getElementById('myCard').classList.add('revealed');
-      window.gameData.cardRevealed = true;
+      if (window.gameData.cardRevealed) {
+        // Ocultar
+        cardFront.style.display = 'block';
+        cardBack.classList.remove('active');
+        myCard.classList.remove('revealed');
+        window.gameData.cardRevealed = false;
+      } else {
+        // Revelar
+        cardFront.style.display = 'none';
+        cardBack.classList.add('active');
+        myCard.classList.add('revealed');
+        window.gameData.cardRevealed = true;
+      }
     }
 
     function updateTurnInfo(turnIndex, playerName, phase, duration) {
@@ -726,9 +745,9 @@
         // Habilitar input solo si es mi turno
         wordInputSection.className = isMyTurn ? 'word-input-section active' : 'word-input-section';
         
-        // Deshabilitar chat
-        chatInput.disabled = true;
-        chatSendBtn.disabled = true;
+        // Chat siempre habilitado
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
         
         // Iniciar temporizador
         startTimer(duration / 1000, () => {
