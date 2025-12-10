@@ -353,7 +353,12 @@ io.on('connection', (socket) => {
       console.log('✅ Código correcto');
     }
 
-    // Permitir unirse si no está llena (para que el admin pueda entrar después de iniciar)
+    // Permitir unirse solo si el juego NO ha empezado O si es reconexión
+    if (game.started) {
+      socket.emit('error', { message: 'La partida ya ha comenzado. No puedes unirte ahora.' });
+      return;
+    }
+    
     if (game.players.length >= game.totalPlayers) {
       socket.emit('error', { message: 'La partida está llena' });
       return;
@@ -375,25 +380,6 @@ io.on('connection', (socket) => {
     socket.join(gameId);
     
     console.log(`✅ ${playerName} agregado. Total jugadores: ${game.players.length}`);
-
-    // Si el juego ya empezó, asignar rol y enviar estado actual
-    if (game.started) {
-      // Asignar rol (inocente por defecto si se une tarde)
-      player.role = 'inocente';
-      player.word = game.palabraSecreta;
-      
-      // Enviar estado completo del juego
-      socket.emit('game-started', {
-        role: player.role,
-        word: player.word,
-        playerIndex: game.players.length - 1,
-        allPlayers: game.players.map(p => ({ name: p.name })),
-        currentTurn: game.currentTurn,
-        totalPlayers: game.players.length
-      });
-      
-      console.log(`🎮 ${playerName} se unió a partida en curso como ${player.role}`);
-    }
 
     // Actualizar contador en base de datos si es pública
     if (game.isPublic) {
@@ -451,10 +437,14 @@ io.on('connection', (socket) => {
     
     // Los primeros N son impostores
     const impostorIndices = shuffled.slice(0, game.impostorCount);
+    
+    console.log(`🎲 Asignando roles: ${game.impostorCount} impostores de ${game.players.length} jugadores`);
+    console.log(`🎲 Índices de impostores:`, impostorIndices);
 
     game.players.forEach((player, index) => {
       player.role = impostorIndices.includes(index) ? 'impostor' : 'inocente';
       player.word = player.role === 'impostor' ? null : palabraSecreta;
+      console.log(`   ${player.name}: ${player.role} ${player.word ? `(palabra: ${player.word})` : ''}`);
     });
 
     game.started = true;
