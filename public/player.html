@@ -560,7 +560,7 @@
     gameId = pathParts[pathParts.length - 1];
     
     // Verificar si es el admin (auto-unirse)
-    function checkIfAdmin() {
+    async function checkIfAdmin() {
       const adminGameId = localStorage.getItem('adminGameId');
       const adminName = localStorage.getItem('adminName');
       const adminGameCode = localStorage.getItem('adminGameCode');
@@ -568,6 +568,14 @@
       if (adminGameId === gameId && adminName) {
         console.log('👑 Admin detectado, auto-uniéndose...');
         playerName = adminName;
+        
+        // Ocultar sección de unirse
+        document.getElementById('joinSection').classList.add('hidden');
+        document.getElementById('waitingSection').classList.add('active');
+        
+        // Mostrar perfil
+        document.getElementById('playerProfile').style.display = 'block';
+        document.getElementById('profileName').textContent = playerName;
         
         // Unirse automáticamente
         const joinData = { gameId, playerName };
@@ -602,9 +610,12 @@
     }
     
     // Ejecutar al cargar
-    if (!checkIfAdmin()) {
-      checkGamePrivacy();
-    }
+    (async () => {
+      const isAdmin = await checkIfAdmin();
+      if (!isAdmin) {
+        await checkGamePrivacy();
+      }
+    })();
 
     function showAlert(message, type = 'danger') {
       const alertContainer = document.getElementById('alertContainer');
