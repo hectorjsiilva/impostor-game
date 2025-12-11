@@ -335,10 +335,20 @@
     .word-input-section {
       display: none;
       margin: 20px 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
     .word-input-section.active {
       display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .word-input {
@@ -842,6 +852,7 @@
 
     function updateTurnInfo(turnIndex, playerName, phase, duration) {
       console.log(`🔄 Turno: ${playerName}, Fase: ${phase}, Duración: ${duration}s`);
+      console.log(`🎮 turnIndex: ${turnIndex}, mi playerIndex: ${window.gameData.playerIndex}`);
       
       const currentPlayerName = document.getElementById('currentPlayerName');
       const phaseText = document.getElementById('phaseText');
@@ -852,13 +863,20 @@
       currentPlayerName.textContent = playerName;
       
       const isMyTurn = turnIndex === window.gameData.playerIndex;
+      console.log(`❓ ¿Es mi turno? ${isMyTurn}`);
       
       if (phase === 'writing') {
         // Fase de escritura
         phaseText.textContent = isMyTurn ? '✍️ Es tu turno - Escribe una palabra' : '⏳ Esperando...';
         
         // Habilitar input de palabra solo si es mi turno
-        wordInputSection.className = isMyTurn ? 'word-input-section active' : 'word-input-section';
+        if (isMyTurn) {
+          wordInputSection.classList.add('active');
+          console.log('✅ Input de palabra ACTIVADO');
+        } else {
+          wordInputSection.classList.remove('active');
+          console.log('❌ Input de palabra DESACTIVADO');
+        }
         
         // DESHABILITAR chat durante escritura
         if (chatInput) chatInput.disabled = true;
@@ -874,7 +892,7 @@
       } else if (phase === 'chatting') {
         // Fase de chat
         phaseText.textContent = '💬 Tiempo de chat';
-        wordInputSection.className = 'word-input-section';
+        wordInputSection.classList.remove('active');
         
         // HABILITAR chat
         if (chatInput) chatInput.disabled = false;

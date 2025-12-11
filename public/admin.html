@@ -520,6 +520,12 @@
                 <p style="font-size: 1.1em; color: #666;" id="adminPhaseText">-</p>
               </div>
             </div>
+            
+            <!-- Campo para escribir palabra cuando es el turno del admin -->
+            <div id="adminWordInputSection" style="display: none; margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+              <input type="text" id="adminWordInput" placeholder="Escribe una palabra relacionada" maxlength="20" style="width: 100%; padding: 15px; font-size: 1.3em; border: 3px solid #667eea; border-radius: 10px; text-align: center; font-weight: 600; margin-bottom: 10px;">
+              <button onclick="submitAdminWord()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: 600; cursor: pointer;">✍️ Enviar Palabra</button>
+            </div>
           </div>
           
           <!-- Panel derecho: Chat -->
@@ -634,10 +640,36 @@
       input.value = '';
     }
     
+    function submitAdminWord() {
+      const input = document.getElementById('adminWordInput');
+      const word = input.value.trim();
+      if (!word) {
+        alert('Por favor escribe una palabra');
+        return;
+      }
+      
+      socket.emit('submit-word', { gameId: currentGameId, word });
+      input.value = '';
+      document.getElementById('adminWordInputSection').style.display = 'none';
+    }
+    
     // Escuchar eventos del juego
     socket.on('next-turn', (data) => {
       document.getElementById('adminCurrentPlayer').textContent = data.playerName;
       document.getElementById('adminPhaseText').textContent = data.phase === 'writing' ? '✍️ Escribiendo palabra' : '💬 Chat';
+      
+      // Verificar si es el turno del admin
+      const isMyTurn = data.currentTurn === window.adminGameData.playerIndex;
+      console.log(`🎮 Admin turno check: currentTurn=${data.currentTurn}, myIndex=${window.adminGameData.playerIndex}, isMyTurn=${isMyTurn}`);
+      
+      // Mostrar/ocultar campo de escritura
+      const wordInputSection = document.getElementById('adminWordInputSection');
+      if (data.phase === 'writing' && isMyTurn) {
+        wordInputSection.style.display = 'block';
+        console.log('✅ Campo de escritura ACTIVADO para admin');
+      } else {
+        wordInputSection.style.display = 'none';
+      }
       
       // Deshabilitar chat durante escritura
       const chatInput = document.getElementById('adminChatInput');
@@ -653,6 +685,9 @@
     
     socket.on('phase-change', (data) => {
       document.getElementById('adminPhaseText').textContent = data.phase === 'chatting' ? '💬 Chat' : '✍️ Escribiendo palabra';
+      
+      // Ocultar campo de escritura en fase de chat
+      document.getElementById('adminWordInputSection').style.display = 'none';
       
       // Habilitar chat en fase de chatting
       const chatInput = document.getElementById('adminChatInput');
