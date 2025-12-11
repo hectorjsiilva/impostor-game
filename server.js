@@ -493,14 +493,14 @@ io.on('connection', (socket) => {
 
     // Cambiar a fase de chat
     game.turnPhase = 'chatting';
-    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 90000 });
+    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 40000 });
 
-    // Después de 90 segundos, pasar al siguiente turno
+    // Después de 40 segundos, pasar al siguiente turno
     setTimeout(() => {
       if (game.started && game.turnPhase === 'chatting') {
         nextTurn(gameId, io, games);
       }
-    }, 90000);
+    }, 40000);
   });
 
   // Tiempo agotado para escribir palabra
@@ -512,14 +512,14 @@ io.on('connection', (socket) => {
 
     // Cambiar a fase de chat
     game.turnPhase = 'chatting';
-    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 90000 });
+    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 40000 });
 
-    // Después de 90 segundos, pasar al siguiente turno
+    // Después de 40 segundos, pasar al siguiente turno
     setTimeout(() => {
       if (game.started && game.turnPhase === 'chatting') {
         nextTurn(gameId, io, games);
       }
-    }, 90000);
+    }, 40000);
   });
 
   // Mensaje de chat

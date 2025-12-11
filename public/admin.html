@@ -212,6 +212,11 @@
     .copy-btn:hover {
       background: #5568d3;
     }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
 
     @media (max-width: 600px) {
       .container {
@@ -469,12 +474,13 @@
     
     function showPlayerInterface(data) {
       const container = document.querySelector('.container');
+      const cleanName = (adminName || '').toString().trim();
       container.innerHTML = `
         <h1>🎭 El Impostor</h1>
         <p class="subtitle">¿Quién es el impostor?</p>
         
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: 600; font-size: 1.1em;">
-          👤 ${adminName}
+          👤 ${cleanName}
         </div>
         
         <!-- Pantalla de revelación inicial -->
@@ -483,7 +489,7 @@
             <h2 style="color: #333; font-size: 2em; margin-bottom: 30px;">Tu palabra es:</h2>
             <div id="adminRevealWord" style="font-size: 4em; font-weight: 800; padding: 40px; border-radius: 20px; margin: 20px 0; animation: pulse 2s infinite;"></div>
             <p style="color: #666; font-size: 1.2em;">Memorízala...</p>
-            <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="adminRevealTimer">20</div>
+            <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="adminRevealTimer">10</div>
           </div>
         </div>
         
@@ -564,8 +570,8 @@
         revealWordEl.style.color = 'white';
       }
       
-      // Iniciar cuenta regresiva de revelación (20 segundos)
-      let revealSeconds = 20;
+      // Iniciar cuenta regresiva de revelación (10 segundos)
+      let revealSeconds = 10;
       const revealTimerEl = document.getElementById('adminRevealTimer');
       const revealScreen = document.getElementById('adminRevealScreen');
       
@@ -586,6 +592,21 @@
           revealScreen.style.display = 'none';
         };
       }
+      
+      // Inicializar información del turno
+      document.getElementById('adminCurrentPlayer').textContent = data.allPlayers[data.currentTurn].name;
+      document.getElementById('adminPhaseText').textContent = '✍️ Escribiendo palabra';
+      
+      // Deshabilitar chat inicialmente (fase de escritura)
+      const chatInput = document.getElementById('adminChatInput');
+      const sendBtn = document.querySelector('#adminChatInput + button');
+      if (chatInput && sendBtn) {
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+      }
+      
+      // Iniciar timer inicial
+      startAdminTimer(45);
     }
     
     let adminCardRevealed = false;
@@ -617,7 +638,66 @@
     socket.on('next-turn', (data) => {
       document.getElementById('adminCurrentPlayer').textContent = data.playerName;
       document.getElementById('adminPhaseText').textContent = data.phase === 'writing' ? '✍️ Escribiendo palabra' : '💬 Chat';
+      
+      // Deshabilitar chat durante escritura
+      const chatInput = document.getElementById('adminChatInput');
+      const sendBtn = document.querySelector('#adminChatInput + button');
+      if (chatInput && sendBtn) {
+        chatInput.disabled = data.phase === 'writing';
+        sendBtn.disabled = data.phase === 'writing';
+      }
+      
+      // Iniciar timer
+      startAdminTimer(data.duration / 1000);
     });
+    
+    socket.on('phase-change', (data) => {
+      document.getElementById('adminPhaseText').textContent = data.phase === 'chatting' ? '💬 Chat' : '✍️ Escribiendo palabra';
+      
+      // Habilitar chat en fase de chatting
+      const chatInput = document.getElementById('adminChatInput');
+      const sendBtn = document.querySelector('#adminChatInput + button');
+      if (chatInput && sendBtn) {
+        chatInput.disabled = data.phase === 'writing';
+        sendBtn.disabled = data.phase === 'writing';
+      }
+      
+      // Iniciar timer para nueva fase
+      startAdminTimer(data.duration / 1000);
+    });
+    
+    let adminTimerInterval = null;
+    
+    function startAdminTimer(seconds) {
+      if (adminTimerInterval) clearInterval(adminTimerInterval);
+      
+      let timeLeft = seconds;
+      const timerEl = document.getElementById('adminTimer');
+      
+      function updateDisplay() {
+        if (timerEl) {
+          timerEl.textContent = timeLeft;
+          if (timeLeft <= 10) {
+            timerEl.style.color = '#ff0844';
+            timerEl.style.animation = 'blink 1s infinite';
+          } else {
+            timerEl.style.color = '#667eea';
+            timerEl.style.animation = 'none';
+          }
+        }
+      }
+      
+      updateDisplay();
+      
+      adminTimerInterval = setInterval(() => {
+        timeLeft--;
+        updateDisplay();
+        
+        if (timeLeft <= 0) {
+          clearInterval(adminTimerInterval);
+        }
+      }, 1000);
+    }
     
     socket.on('new-message', (data) => {
       const chatMessages = document.getElementById('adminChatMessages');

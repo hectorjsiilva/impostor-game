@@ -514,7 +514,7 @@
           <h2 style="color: #333; font-size: 2em; margin-bottom: 30px;">Tu palabra es:</h2>
           <div id="revealWord" style="font-size: 4em; font-weight: 800; padding: 40px; border-radius: 20px; margin: 20px 0; animation: pulse 2s infinite;"></div>
           <p style="color: #666; font-size: 1.2em;">Memorízala...</p>
-          <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="revealTimer">20</div>
+          <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="revealTimer">10</div>
         </div>
       </div>
       
@@ -756,8 +756,8 @@
         revealWord.style.color = 'white';
       }
       
-      // Iniciar cuenta regresiva de revelación (20 segundos)
-      let revealSeconds = 20;
+      // Iniciar cuenta regresiva de revelación (10 segundos)
+      let revealSeconds = 10;
       const revealTimerEl = document.getElementById('revealTimer');
       const revealScreen = document.getElementById('revealScreen');
       
@@ -843,12 +843,11 @@
     function updateTurnInfo(turnIndex, playerName, phase, duration) {
       console.log(`🔄 Turno: ${playerName}, Fase: ${phase}, Duración: ${duration}s`);
       
-      const turnInfo = document.getElementById('turnInfo');
       const currentPlayerName = document.getElementById('currentPlayerName');
       const phaseText = document.getElementById('phaseText');
       const wordInputSection = document.getElementById('wordInputSection');
       const chatInput = document.getElementById('chatInput');
-      const chatSendBtn = document.getElementById('chatSendBtn');
+      const sendBtn = document.querySelector('.send-btn');
       
       currentPlayerName.textContent = playerName;
       
@@ -857,14 +856,13 @@
       if (phase === 'writing') {
         // Fase de escritura
         phaseText.textContent = isMyTurn ? '✍️ Es tu turno - Escribe una palabra' : '⏳ Esperando...';
-        turnInfo.className = isMyTurn ? 'turn-info my-turn' : 'turn-info';
         
-        // Habilitar input solo si es mi turno
+        // Habilitar input de palabra solo si es mi turno
         wordInputSection.className = isMyTurn ? 'word-input-section active' : 'word-input-section';
         
-        // Chat siempre habilitado
-        chatInput.disabled = false;
-        chatSendBtn.disabled = false;
+        // DESHABILITAR chat durante escritura
+        if (chatInput) chatInput.disabled = true;
+        if (sendBtn) sendBtn.disabled = true;
         
         // Iniciar temporizador
         startTimer(duration / 1000, () => {
@@ -876,12 +874,11 @@
       } else if (phase === 'chatting') {
         // Fase de chat
         phaseText.textContent = '💬 Tiempo de chat';
-        turnInfo.className = 'turn-info';
         wordInputSection.className = 'word-input-section';
         
-        // Habilitar chat
-        chatInput.disabled = false;
-        chatSendBtn.disabled = false;
+        // HABILITAR chat
+        if (chatInput) chatInput.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
         
         // Iniciar temporizador
         startTimer(duration / 1000);
