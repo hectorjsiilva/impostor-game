@@ -26,7 +26,7 @@
       border-radius: 20px;
       padding: 40px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 500px;
+      max-width: 1200px;
       width: 100%;
       text-align: center;
     }
@@ -380,10 +380,11 @@
     }
 
     .chat-messages {
-      height: 250px;
+      flex: 1;
       overflow-y: auto;
       padding: 15px;
       background: #f8f9fa;
+      min-height: 400px;
     }
 
     .chat-message {
@@ -398,7 +399,7 @@
       color: #667eea;
     }
 
-    .chat-input-area {
+    .chat-input-container {
       display: flex;
       padding: 15px;
       background: white;
@@ -418,7 +419,7 @@
       cursor: not-allowed;
     }
 
-    .chat-send-btn {
+    .send-btn {
       margin-left: 10px;
       padding: 10px 20px;
       background: #667eea;
@@ -429,22 +430,33 @@
       font-weight: 600;
     }
 
-    .chat-send-btn:hover:not(:disabled) {
+    .send-btn:hover:not(:disabled) {
       background: #5568d3;
     }
 
-    .chat-send-btn:disabled {
+    .send-btn:disabled {
       background: #ccc;
       cursor: not-allowed;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     @media (max-width: 600px) {
       .container {
         padding: 25px;
+        max-width: 100%;
       }
 
       h1 {
         font-size: 2em;
+      }
+      
+      /* Layout responsive en móviles */
+      #gameSection > div[style*="grid"] {
+        grid-template-columns: 1fr !important;
       }
 
       .role-card {
@@ -496,55 +508,76 @@
 
     <!-- Sección de juego -->
     <div id="gameSection" class="game-section">
-      <!-- Mi carta con palabra/rol -->
-      <div id="myCard" class="my-card" onclick="toggleCard()">
-        <div class="card-front" id="cardFront">
-          <h3>🎴 Tu Carta</h3>
-          <p style="color: #666;">Haz clic para revelar/ocultar</p>
+      <!-- Pantalla de revelación inicial -->
+      <div id="revealScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+        <div style="background: white; padding: 50px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; max-width: 600px;">
+          <h2 style="color: #333; font-size: 2em; margin-bottom: 30px;">Tu palabra es:</h2>
+          <div id="revealWord" style="font-size: 4em; font-weight: 800; padding: 40px; border-radius: 20px; margin: 20px 0; animation: pulse 2s infinite;"></div>
+          <p style="color: #666; font-size: 1.2em;">Memorízala...</p>
+          <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="revealTimer">20</div>
         </div>
-        <div class="card-back" id="cardBack">
-          <div class="card-word" id="cardWord"></div>
-        </div>
       </div>
+      
+      <!-- Layout de dos columnas -->\n      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- Panel izquierdo: Info del juego -->
+        <div>
+          <!-- Mi carta con palabra/rol -->
+          <div id="myCard" class="my-card" onclick="toggleCard()">
+            <div class="card-front" id="cardFront">
+              <h3>🎴 Tu Carta</h3>
+              <p style="color: #666;">Haz clic para revelar/ocultar</p>
+            </div>
+            <div class="card-back" id="cardBack">
+              <div class="card-word" id="cardWord"></div>
+            </div>
+          </div>
 
-      <!-- Información del turno -->
-      <div class="turn-info" id="turnInfo">
-        <p><strong>Turno de:</strong> <span id="currentPlayerName">-</span></p>
-        <div class="timer" id="timer">--</div>
-        <p id="phaseText">-</p>
-      </div>
+          <!-- Información del turno -->
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; margin-bottom: 15px; text-align: center;">📊 Estado del Juego</h3>
+            <div style="text-align: center; margin-bottom: 15px;">
+              <p style="font-size: 1.1em; color: #666; margin-bottom: 5px;"><strong>Turno de:</strong></p>
+              <p style="font-size: 1.3em; color: #667eea; font-weight: 700;" id="currentPlayerName">-</p>
+            </div>
+            <div style="text-align: center; margin-bottom: 15px;">
+              <div class="timer" id="timer" style="font-size: 3em; margin: 10px 0;">--</div>
+            </div>
+            <div style="text-align: center;">
+              <p style="font-size: 1.1em; color: #666;" id="phaseText">-</p>
+            </div>
+          </div>
 
-      <!-- Sección para escribir palabra (solo cuando es tu turno) -->
-      <div class="word-input-section" id="wordInputSection">
-        <input type="text" 
-               class="word-input" 
-               id="wordInput" 
-               placeholder="Escribe una palabra relacionada" 
-               maxlength="20">
-        <button class="submit-word-btn" onclick="submitWord()">
-          ✍️ Enviar Palabra
-        </button>
-      </div>
-
-      <!-- Chat -->
-      <div class="chat-section">
-        <div class="chat-messages" id="chatMessages">
-          <div style="text-align: center; color: #666; padding: 20px;">
-            💬 Chat habilitado - Escribe cuando quieras
+          <!-- Sección para escribir palabra (solo cuando es tu turno) -->
+          <div class="word-input-section" id="wordInputSection">
+            <input type="text" 
+                   class="word-input" 
+                   id="wordInput" 
+                   placeholder="Escribe una palabra relacionada" 
+                   maxlength="20">
+            <button class="submit-word-btn" onclick="submitWord()">
+              ✍️ Enviar Palabra
+            </button>
           </div>
         </div>
-        <div class="chat-input-area">
-          <input type="text" 
-                 class="chat-input" 
-                 id="chatInput" 
-                 placeholder="Escribe un mensaje..." 
-                 maxlength="200">
-          <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">
-            Enviar
-          </button>
+        
+        <!-- Panel derecho: Chat -->
+        <div>
+          <div style="background: white; border-radius: 10px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; padding: 15px; border-bottom: 2px solid #e9ecef; margin: 0;">💬 Chat</h3>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-container">
+              <input type="text" 
+                     class="chat-input" 
+                     id="chatInput" 
+                     placeholder="Escribe un mensaje..." 
+                     onkeypress="if(event.key==='Enter') sendMessage()">
+              <button class="send-btn" onclick="sendMessage()">Enviar</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
     <div id="alertContainer"></div>
   </div>
@@ -709,6 +742,41 @@
       } else {
         cardWord.textContent = data.word;
         cardWord.className = 'card-word inocente';
+      }
+      
+      // Mostrar palabra o IMPOSTOR en la pantalla de revelación
+      const revealWord = document.getElementById('revealWord');
+      if (data.role === 'impostor') {
+        revealWord.textContent = '🎭 IMPOSTOR';
+        revealWord.style.background = 'linear-gradient(135deg, #ff6b6b, #c92a2a)';
+        revealWord.style.color = 'white';
+      } else {
+        revealWord.textContent = data.word;
+        revealWord.style.background = 'linear-gradient(135deg, #51cf66, #2f9e44)';
+        revealWord.style.color = 'white';
+      }
+      
+      // Iniciar cuenta regresiva de revelación (20 segundos)
+      let revealSeconds = 20;
+      const revealTimerEl = document.getElementById('revealTimer');
+      const revealScreen = document.getElementById('revealScreen');
+      
+      const revealInterval = setInterval(() => {
+        revealSeconds--;
+        if (revealTimerEl) revealTimerEl.textContent = revealSeconds;
+        
+        if (revealSeconds <= 0) {
+          clearInterval(revealInterval);
+          if (revealScreen) revealScreen.style.display = 'none';
+        }
+      }, 1000);
+      
+      // Permitir cerrar la pantalla haciendo clic
+      if (revealScreen) {
+        revealScreen.onclick = () => {
+          clearInterval(revealInterval);
+          revealScreen.style.display = 'none';
+        };
       }
       
       // Iniciar primer turno

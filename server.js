@@ -449,7 +449,7 @@ io.on('connection', (socket) => {
 
     game.started = true;
     game.palabraSecreta = palabraSecreta;
-    game.currentTurn = 0; // Índice del jugador actual
+    game.currentTurn = Math.floor(Math.random() * game.players.length); // Jugador inicial aleatorio
     game.turnPhase = 'revealing'; // revealing, writing, chatting
     game.messages = [];
 
