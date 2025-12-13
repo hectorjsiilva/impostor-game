@@ -109,6 +109,43 @@ const userDB = {
       LIMIT ?
     `);
     return stmt.all(limit);
+  },
+
+  // ============ FUNCIONES SUPER ADMIN ============
+  
+  // Obtener todos los usuarios
+  getAllUsers: () => {
+    const stmt = db.prepare(`
+      SELECT id, username, email, created_at, games_played, games_won, 
+             times_impostor, times_innocent
+      FROM users 
+      ORDER BY created_at DESC
+    `);
+    return stmt.all();
+  },
+
+  // Obtener historial de un usuario específico
+  getUserHistory: (userId) => {
+    const stmt = db.prepare(`
+      SELECT gh.*, u.username
+      FROM game_history gh
+      JOIN users u ON gh.user_id = u.id
+      WHERE gh.user_id = ?
+      ORDER BY gh.played_at DESC
+    `);
+    return stmt.all(userId);
+  },
+
+  // Obtener estadísticas globales
+  getGlobalStats: () => {
+    const stmt = db.prepare(`
+      SELECT 
+        COUNT(*) as total_users,
+        SUM(games_played) as total_games,
+        SUM(games_won) as total_wins
+      FROM users
+    `);
+    return stmt.get();
   }
 };
 
@@ -160,6 +197,32 @@ const gameDB = {
       VALUES (?, ?, ?, ?)
     `);
     stmt.run(userId, gameId, role, won ? 1 : 0);
+  },
+
+  // ============ FUNCIONES SUPER ADMIN ============
+  
+  // Obtener todas las partidas (activas e históricas)
+  getAllGames: () => {
+    const stmt = db.prepare(`
+      SELECT g.*, u.username as creator_name 
+      FROM active_games g
+      JOIN users u ON g.creator_id = u.id
+      ORDER BY g.created_at DESC
+      LIMIT 100
+    `);
+    return stmt.all();
+  },
+
+  // Obtener historial completo de partidas
+  getGameHistory: (limit = 100) => {
+    const stmt = db.prepare(`
+      SELECT gh.*, u.username
+      FROM game_history gh
+      JOIN users u ON gh.user_id = u.id
+      ORDER BY gh.played_at DESC
+      LIMIT ?
+    `);
+    return stmt.all(limit);
   }
 };
 

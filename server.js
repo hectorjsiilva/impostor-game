@@ -54,6 +54,18 @@ const requireAuth = (req, res, next) => {
   }
 };
 
+// Middleware de autenticación de Super Admin
+const requireSuperAdmin = (req, res, next) => {
+  const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'hector@admin.com';
+  const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'admin123';
+  
+  if (req.session && req.session.isSuperAdmin) {
+    return next();
+  }
+  
+  res.status(403).json({ error: 'Acceso denegado. Solo Super Admin.' });
+};
+
 // Ruta principal - Landing
 app.get('/', (req, res) => {
   if (req.session && req.session.userId) {
@@ -70,6 +82,11 @@ app.get('/dashboard', requireAuth, (req, res) => {
 // Admin de partida
 app.get('/admin-game/:gameId', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Super Admin Panel
+app.get('/superadmin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'superadmin.html'));
 });
 
 // Ruta para jugadores (sin requerir autenticación previa)
@@ -161,6 +178,83 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/logout', (req, res) => {
   req.session.destroy();
   res.json({ success: true });
+});
+
+// ============ APIs de Super Admin ============
+
+// Login de Super Admin
+app.post('/api/superadmin/login', (req, res) => {
+  const { email, password } = req.body;
+  
+  const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'hector@admin.com';
+  const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'admin123';
+  
+  if (email === SUPER_ADMIN_EMAIL && password === SUPER_ADMIN_PASSWORD) {
+    req.session.isSuperAdmin = true;
+    req.session.superAdminEmail = email;
+    
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al crear sesión' });
+      }
+      res.json({ success: true });
+    });
+  } else {
+    res.status(401).json({ error: 'Credenciales incorrectas' });
+  }
+});
+
+// Verificar sesión de Super Admin
+app.get('/api/superadmin/verify', (req, res) => {
+  if (req.session && req.session.isSuperAdmin) {
+    res.json({ authenticated: true, email: req.session.superAdminEmail });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+// Logout de Super Admin
+app.post('/api/superadmin/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ success: true });
+});
+
+// Obtener todos los usuarios
+app.get('/api/superadmin/users', requireSuperAdmin, (req, res) => {
+  try {
+    const users = userDB.getAllUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
+// Obtener historial de un usuario
+app.get('/api/superadmin/users/:userId/history', requireSuperAdmin, (req, res) => {
+  try {
+    const history = userDB.getUserHistory(req.params.userId);
+    const user = userDB.findById(req.params.userId);
+    res.json({ user, history });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener historial' });
+  }
+});
+
+// Obtener estadísticas globales
+app.get('/api/superadmin/stats', requireSuperAdmin, (req, res) => {
+  try {
+    const globalStats = userDB.getGlobalStats();
+    const recentGames = gameDB.getGameHistory(50);
+    const activeGames = gameDB.getAllGames();
+    
+    res.json({
+      global: globalStats,
+      recentGames,
+      activeGames
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener estadísticas' });
+  }
 });
 
 // ============ APIs de Usuario ============
