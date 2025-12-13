@@ -352,9 +352,21 @@
         document.getElementById('setupForm').style.display = 'none';
         document.getElementById('gameLinkContainer').classList.add('active');
         
+        // Preparar datos de unión
+        const joinData = { 
+          gameId: currentGameId, 
+          playerName: adminName 
+        };
+        
+        // Si hay código de partida privada, incluirlo
+        if (currentGameCode) {
+          joinData.gameCode = currentGameCode;
+          console.log('🔐 Incluyendo código:', currentGameCode);
+        }
+        
         // Unirse como admin/jugador
         socket.emit('join-as-admin', { gameId: currentGameId });
-        socket.emit('join-game', { gameId: currentGameId, playerName: adminName });
+        socket.emit('join-game', joinData);
         
         showAlert('¡Te has unido a la partida!', 'success');
       } catch (error) {
