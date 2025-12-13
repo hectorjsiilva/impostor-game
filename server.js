@@ -284,6 +284,9 @@ app.post('/api/games/create', requireAuth, (req, res) => {
 
   const gameId = uuidv4().substring(0, 8);
   
+  // Generar código si es privada
+  const gameCode = !isPublic ? Math.floor(1000 + Math.random() * 9000).toString() : null;
+  
   games.set(gameId, {
     id: gameId,
     name: gameName,
@@ -294,6 +297,8 @@ app.post('/api/games/create', requireAuth, (req, res) => {
     players: [],
     started: false,
     isPublic: isPublic || false,
+    isPrivate: !isPublic,
+    gameCode: gameCode,
     roles: []
   });
 
@@ -305,10 +310,17 @@ app.post('/api/games/create', requireAuth, (req, res) => {
   // Notificar actualización de partidas
   io.emit('games-updated');
 
-  res.json({ 
+  const response = { 
     gameId, 
     link: `${req.protocol}://${req.get('host')}/game/${gameId}` 
-  });
+  };
+  
+  // Agregar código si es privada
+  if (gameCode) {
+    response.gameCode = gameCode;
+  }
+
+  res.json(response);
 });
 
 // Obtener partidas públicas
