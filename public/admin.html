@@ -280,6 +280,7 @@
     const socket = io();
     let currentGameId = null;
     let currentGameLink = null;
+    let currentGameCode = null; // Código de partida privada
     let adminName = null; // Variable global para el nombre del admin
 
     // Obtener gameId de la URL
@@ -301,6 +302,17 @@
           
           // Configurar la interfaz con la info de la partida
           document.getElementById('gameLink').textContent = currentGameLink;
+          
+          // Si es privada, mostrar el código
+          if (gameData.isPrivate && gameData.gameCode) {
+            currentGameCode = gameData.gameCode;
+            document.getElementById('gameCodeBox').style.display = 'block';
+            document.getElementById('gameCode').textContent = gameData.gameCode;
+            
+            // Cambiar texto del botón
+            document.querySelector('.copy-btn').innerHTML = '📋 Copiar Enlace y Código';
+          }
+          
           console.log('✅ Partida cargada:', gameData);
         }
       } catch (error) {
@@ -427,8 +439,20 @@
 
     function copyLink() {
       const linkText = document.getElementById('gameLink').textContent;
-      navigator.clipboard.writeText(linkText).then(() => {
-        showAlert('¡Enlace copiado al portapapeles!', 'success');
+      
+      let textToCopy = linkText;
+      
+      // Si hay código de partida privada, agregar el código
+      if (currentGameCode) {
+        textToCopy = `ENLACE: ${linkText}\nCÓDIGO: ${currentGameCode}`;
+      }
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        if (currentGameCode) {
+          showAlert('¡Enlace y código copiados al portapapeles!', 'success');
+        } else {
+          showAlert('¡Enlace copiado al portapapeles!', 'success');
+        }
       });
     }
 

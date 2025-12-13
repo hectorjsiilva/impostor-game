@@ -378,7 +378,8 @@ app.get('/api/game/:gameId', (req, res) => {
     totalPlayers: game.totalPlayers,
     currentPlayers: game.players.length,
     started: game.started,
-    isPrivate: game.isPrivate || false
+    isPrivate: game.isPrivate || false,
+    gameCode: game.gameCode || null
   });
 });
 
