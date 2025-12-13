@@ -557,7 +557,7 @@ io.on('connection', (socket) => {
     game.started = true;
     game.palabraSecreta = palabraSecreta;
     game.currentTurn = Math.floor(Math.random() * game.players.length); // Jugador inicial aleatorio
-    game.turnPhase = 'revealing'; // revealing, writing, chatting
+    game.turnPhase = 'writing'; // Iniciar directamente en fase de escritura
     game.messages = [];
 
     // Actualizar estado en base de datos
@@ -578,7 +578,16 @@ io.on('connection', (socket) => {
       });
     });
 
+    // Iniciar el primer turno inmediatamente
+    io.to(gameId).emit('next-turn', {
+      currentTurn: game.currentTurn,
+      playerName: game.players[game.currentTurn].name,
+      phase: 'writing',
+      duration: 45000
+    });
+
     console.log(`🎮 Partida ${gameId} iniciada - Palabra: ${palabraSecreta}`);
+    console.log(`▶️ Primer turno: ${game.players[game.currentTurn].name} (índice ${game.currentTurn})`);
   });
 
   // Jugador escribe su palabra
