@@ -680,12 +680,12 @@
       document.getElementById('adminCurrentPlayer').textContent = data.allPlayers[data.currentTurn].name;
       document.getElementById('adminPhaseText').textContent = '✍️ Escribiendo palabra';
       
-      // Deshabilitar chat inicialmente (fase de escritura)
+      // Chat siempre habilitado para admin
       const chatInput = document.getElementById('adminChatInput');
       const sendBtn = document.querySelector('#adminChatInput + button');
       if (chatInput && sendBtn) {
-        chatInput.disabled = true;
-        sendBtn.disabled = true;
+        chatInput.disabled = false;
+        sendBtn.disabled = false;
       }
       
       // Iniciar timer inicial
@@ -748,12 +748,12 @@
         wordInputSection.style.display = 'none';
       }
       
-      // Deshabilitar chat durante escritura
+      // Chat siempre habilitado
       const chatInput = document.getElementById('adminChatInput');
       const sendBtn = document.querySelector('#adminChatInput + button');
       if (chatInput && sendBtn) {
-        chatInput.disabled = data.phase === 'writing';
-        sendBtn.disabled = data.phase === 'writing';
+        chatInput.disabled = false;
+        sendBtn.disabled = false;
       }
       
       // Iniciar timer
@@ -766,12 +766,12 @@
       // Ocultar campo de escritura en fase de chat
       document.getElementById('adminWordInputSection').style.display = 'none';
       
-      // Habilitar chat en fase de chatting
+      // Chat siempre habilitado
       const chatInput = document.getElementById('adminChatInput');
       const sendBtn = document.querySelector('#adminChatInput + button');
       if (chatInput && sendBtn) {
-        chatInput.disabled = data.phase === 'writing';
-        sendBtn.disabled = data.phase === 'writing';
+        chatInput.disabled = false;
+        sendBtn.disabled = false;
       }
       
       // Iniciar timer para nueva fase
@@ -829,6 +829,17 @@
       const messageDiv = document.createElement('div');
       messageDiv.style.cssText = 'margin: 8px 0; padding: 8px 12px; background: white; border-radius: 8px; border-left: 3px solid #ffc107;';
       messageDiv.innerHTML = `<strong style="color: #856404;">🎮 ${data.playerName} escribió: ${data.word}</strong>`;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+    
+    socket.on('timeout-alert', (data) => {
+      const chatMessages = document.getElementById('adminChatMessages');
+      if (!chatMessages) return;
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = 'margin: 8px 0; padding: 12px; background: #ffebee; border-radius: 8px; border-left: 4px solid #dc3545;';
+      messageDiv.innerHTML = `<strong style="color: #dc3545;">⚠️ ${data.playerName} no escribió ninguna palabra</strong>`;
       chatMessages.appendChild(messageDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     });
