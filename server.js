@@ -410,7 +410,7 @@ function nextTurn(gameId, io, games) {
     currentTurn: game.currentTurn,
     playerName: game.players[game.currentTurn].name,
     phase: 'writing',
-    duration: 20000
+    duration: 90000
   });
 }
 
@@ -585,7 +585,7 @@ io.on('connection', (socket) => {
       currentTurn: game.currentTurn,
       playerName: game.players[game.currentTurn].name,
       phase: 'writing',
-      duration: 20000
+      duration: 90000
     });
 
     console.log(`🎮 Partida ${gameId} iniciada - Palabra: ${palabraSecreta}`);
