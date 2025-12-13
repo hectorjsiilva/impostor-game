@@ -402,6 +402,7 @@ function nextTurn(gameId, io, games) {
 
   game.currentTurn = (game.currentTurn + 1) % game.players.length;
   game.turnPhase = 'writing';
+  game.playerWroteWord = false; // Rastrear si escribió palabra
 
   console.log(`➡️ Turno de ${game.players[game.currentTurn].name}`);
 
@@ -409,7 +410,7 @@ function nextTurn(gameId, io, games) {
     currentTurn: game.currentTurn,
     playerName: game.players[game.currentTurn].name,
     phase: 'writing',
-    duration: 45000
+    duration: 20000
   });
 }
 
@@ -579,11 +580,12 @@ io.on('connection', (socket) => {
     });
 
     // Iniciar el primer turno inmediatamente
+    game.playerWroteWord = false; // Rastrear si escribió palabra
     io.to(gameId).emit('next-turn', {
       currentTurn: game.currentTurn,
       playerName: game.players[game.currentTurn].name,
       phase: 'writing',
-      duration: 45000
+      duration: 20000
     });
 
     console.log(`🎮 Partida ${gameId} iniciada - Palabra: ${palabraSecreta}`);
@@ -600,6 +602,8 @@ io.on('connection', (socket) => {
 
     console.log(`📝 ${game.players[playerIndex].name} escribió: ${word}`);
 
+    game.playerWroteWord = true; // Marcar que escribió palabra
+
     // Notificar a todos que el jugador escribió su palabra
     io.to(gameId).emit('word-submitted', {
       playerIndex,
@@ -607,16 +611,8 @@ io.on('connection', (socket) => {
       word
     });
 
-    // Cambiar a fase de chat
-    game.turnPhase = 'chatting';
-    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 40000 });
-
-    // Después de 40 segundos, pasar al siguiente turno
-    setTimeout(() => {
-      if (game.started && game.turnPhase === 'chatting') {
-        nextTurn(gameId, io, games);
-      }
-    }, 40000);
+    // Pasar inmediatamente al siguiente turno
+    nextTurn(gameId, io, games);
   });
 
   // Tiempo agotado para escribir palabra
@@ -626,16 +622,16 @@ io.on('connection', (socket) => {
 
     console.log(`⏱️ Tiempo agotado para ${game.players[game.currentTurn].name}`);
 
-    // Cambiar a fase de chat
-    game.turnPhase = 'chatting';
-    io.to(gameId).emit('phase-change', { phase: 'chatting', duration: 40000 });
+    // Si no escribió palabra, mostrar alerta en el chat
+    if (!game.playerWroteWord) {
+      io.to(gameId).emit('timeout-alert', {
+        playerName: game.players[game.currentTurn].name,
+        message: `⏰ ${game.players[game.currentTurn].name} no escribió ninguna palabra`
+      });
+    }
 
-    // Después de 40 segundos, pasar al siguiente turno
-    setTimeout(() => {
-      if (game.started && game.turnPhase === 'chatting') {
-        nextTurn(gameId, io, games);
-      }
-    }, 40000);
+    // Pasar inmediatamente al siguiente turno
+    nextTurn(gameId, io, games);
   });
 
   // Mensaje de chat

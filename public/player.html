@@ -878,9 +878,9 @@
           console.log('❌ Input de palabra DESACTIVADO');
         }
         
-        // DESHABILITAR chat durante escritura
-        if (chatInput) chatInput.disabled = true;
-        if (sendBtn) sendBtn.disabled = true;
+        // MANTENER CHAT HABILITADO TODO EL TIEMPO
+        if (chatInput) chatInput.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
         
         // Iniciar temporizador
         startTimer(duration / 1000, () => {
@@ -894,7 +894,7 @@
         phaseText.textContent = '💬 Tiempo de chat';
         wordInputSection.classList.remove('active');
         
-        // HABILITAR chat
+        // MANTENER CHAT HABILITADO
         if (chatInput) chatInput.disabled = false;
         if (sendBtn) sendBtn.disabled = false;
         
@@ -998,11 +998,16 @@
       addChatMessage(`${data.playerName} escribió: ${data.word}`, true);
     });
 
+    socket.on('timeout-alert', (data) => {
+      console.log('⏰ Timeout:', data);
+      addChatMessage(data.message, false, true); // true para estilo de error
+    });
+
     socket.on('new-message', (data) => {
       addChatMessage(`${data.playerName}: ${data.message}`);
     });
 
-    function addChatMessage(message, isSystem = false) {
+    function addChatMessage(message, isSystem = false, isError = false) {
       const chatMessages = document.getElementById('chatMessages');
       
       // Remover mensaje de bienvenida si existe
@@ -1013,7 +1018,11 @@
       const messageDiv = document.createElement('div');
       messageDiv.className = 'chat-message';
       
-      if (isSystem) {
+      if (isError) {
+        messageDiv.style.borderLeftColor = '#dc3545';
+        messageDiv.style.backgroundColor = '#ffebee';
+        messageDiv.innerHTML = `<strong style="color: #dc3545;">⚠️ ${message}</strong>`;
+      } else if (isSystem) {
         messageDiv.style.borderLeftColor = '#ffc107';
         messageDiv.innerHTML = `<strong>🎮 ${message}</strong>`;
       } else {
