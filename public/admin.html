@@ -237,27 +237,11 @@
 
     <div id="setupForm">
       <div class="form-group">
-        <label for="adminName">Tu nombre (Admin/Jugador):</label>
+        <label for="adminName">Tu nombre de jugador:</label>
         <input type="text" id="adminName" placeholder="Ingresa tu nombre" maxlength="20" required>
       </div>
 
-      <div class="form-group">
-        <label for="totalPlayers">Número total de jugadores:</label>
-        <input type="number" id="totalPlayers" min="3" max="20" value="6">
-      </div>
-
-      <div class="form-group">
-        <label for="impostorCount">Número de impostores:</label>
-        <input type="number" id="impostorCount" min="1" max="5" value="1">
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="isPrivate" checked> Partida Privada (con código)
-        </label>
-      </div>
-
-      <button class="btn btn-primary" onclick="createGame()">Crear Partida</button>
+      <button class="btn btn-primary" onclick="joinAsAdmin()">Unirme como Admin</button>
     </div>
 
     <div id="gameLinkContainer" class="game-link-container">
@@ -308,6 +292,66 @@
       setTimeout(() => {
         alertContainer.innerHTML = '';
       }, 5000);
+    }
+
+    let currentGameId = null;
+    let currentGameLink = null;
+
+    // Obtener gameId de la URL
+    function getGameIdFromUrl() {
+      const pathParts = window.location.pathname.split('/');
+      return pathParts[pathParts.length - 1];
+    }
+
+    // Cargar información de la partida al entrar
+    window.addEventListener('DOMContentLoaded', async () => {
+      currentGameId = getGameIdFromUrl();
+      
+      try {
+        const response = await fetch(`/api/game/${currentGameId}`);
+        if (response.ok) {
+          const gameData = await response.json();
+          currentGameLink = `${window.location.origin}/game/${currentGameId}`;
+          
+          // Configurar la interfaz con la info de la partida
+          document.getElementById('gameLink').textContent = currentGameLink;
+          
+          // Si es privada, podrías mostrar el código aquí si lo guardas en la respuesta
+          if (gameData.isPrivate) {
+            // Aquí podrías mostrar el código si lo tienes disponible
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar partida:', error);
+      }
+    });
+
+    async function joinAsAdmin() {
+      adminName = document.getElementById('adminName').value.trim();
+
+      if (!adminName) {
+        showAlert('Por favor ingresa tu nombre', 'danger');
+        return;
+      }
+
+      if (adminName.length < 2) {
+        showAlert('El nombre debe tener al menos 2 caracteres', 'danger');
+        return;
+      }
+
+      try {
+        document.getElementById('setupForm').style.display = 'none';
+        document.getElementById('gameLinkContainer').classList.add('active');
+        
+        // Unirse como admin/jugador
+        console.log('🎮 Admin uniéndose como jugador:', { gameId: currentGameId, playerName: adminName });
+        socket.emit('join-as-admin', { gameId: currentGameId });
+        socket.emit('join-game', { gameId: currentGameId, playerName: adminName });
+        
+        showAlert('¡Te has unido a la partida!', 'success');
+      } catch (error) {
+        showAlert('Error al unirse a la partida', 'danger');
+      }
     }
 
     async function createGame() {
