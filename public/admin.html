@@ -282,6 +282,33 @@
     let currentGameLink = null;
     let adminName = null; // Variable global para el nombre del admin
 
+    // Obtener gameId de la URL
+    function getGameIdFromUrl() {
+      const pathParts = window.location.pathname.split('/');
+      return pathParts[pathParts.length - 1];
+    }
+
+    // Cargar información de la partida al entrar
+    window.addEventListener('DOMContentLoaded', async () => {
+      currentGameId = getGameIdFromUrl();
+      console.log('🎮 GameID desde URL:', currentGameId);
+      
+      try {
+        const response = await fetch(`/api/game/${currentGameId}`);
+        if (response.ok) {
+          const gameData = await response.json();
+          currentGameLink = `${window.location.origin}/game/${currentGameId}`;
+          
+          // Configurar la interfaz con la info de la partida
+          document.getElementById('gameLink').textContent = currentGameLink;
+          console.log('✅ Partida cargada:', gameData);
+        }
+      } catch (error) {
+        console.error('❌ Error al cargar partida:', error);
+        showAlert('Error al cargar la partida', 'danger');
+      }
+    });
+
     function showAlert(message, type = 'success') {
       const alertContainer = document.getElementById('alertContainer');
       alertContainer.innerHTML = `
@@ -293,38 +320,6 @@
         alertContainer.innerHTML = '';
       }, 5000);
     }
-
-    let currentGameId = null;
-    let currentGameLink = null;
-
-    // Obtener gameId de la URL
-    function getGameIdFromUrl() {
-      const pathParts = window.location.pathname.split('/');
-      return pathParts[pathParts.length - 1];
-    }
-
-    // Cargar información de la partida al entrar
-    window.addEventListener('DOMContentLoaded', async () => {
-      currentGameId = getGameIdFromUrl();
-      
-      try {
-        const response = await fetch(`/api/game/${currentGameId}`);
-        if (response.ok) {
-          const gameData = await response.json();
-          currentGameLink = `${window.location.origin}/game/${currentGameId}`;
-          
-          // Configurar la interfaz con la info de la partida
-          document.getElementById('gameLink').textContent = currentGameLink;
-          
-          // Si es privada, podrías mostrar el código aquí si lo guardas en la respuesta
-          if (gameData.isPrivate) {
-            // Aquí podrías mostrar el código si lo tienes disponible
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar partida:', error);
-      }
-    });
 
     async function joinAsAdmin() {
       adminName = document.getElementById('adminName').value.trim();
@@ -340,16 +335,18 @@
       }
 
       try {
+        console.log('🎮 Uniéndose a partida:', currentGameId, 'como:', adminName);
+        
         document.getElementById('setupForm').style.display = 'none';
         document.getElementById('gameLinkContainer').classList.add('active');
         
         // Unirse como admin/jugador
-        console.log('🎮 Admin uniéndose como jugador:', { gameId: currentGameId, playerName: adminName });
         socket.emit('join-as-admin', { gameId: currentGameId });
         socket.emit('join-game', { gameId: currentGameId, playerName: adminName });
         
         showAlert('¡Te has unido a la partida!', 'success');
       } catch (error) {
+        console.error('❌ Error al unirse:', error);
         showAlert('Error al unirse a la partida', 'danger');
       }
     }
