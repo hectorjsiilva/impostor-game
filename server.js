@@ -400,18 +400,54 @@ function nextTurn(gameId, io, games) {
   const game = games.get(gameId);
   if (!game || !game.started) return;
 
+  // Limpiar temporizador anterior si existe
+  if (game.turnTimer) {
+    clearInterval(game.turnTimer);
+    clearTimeout(game.turnTimeout);
+  }
+
   game.currentTurn = (game.currentTurn + 1) % game.players.length;
   game.turnPhase = 'writing';
   game.playerWroteWord = false; // Rastrear si escribió palabra
+  game.timeRemaining = 90; // 90 segundos para escribir
 
   console.log(`➡️ Turno de ${game.players[game.currentTurn].name}`);
 
+  // Enviar evento inicial de turno
   io.to(gameId).emit('next-turn', {
     currentTurn: game.currentTurn,
     playerName: game.players[game.currentTurn].name,
     phase: 'writing',
-    duration: 90000
+    timeRemaining: game.timeRemaining
   });
+
+  // Actualizar tiempo cada segundo
+  game.turnTimer = setInterval(() => {
+    game.timeRemaining--;
+    
+    // Enviar actualización de tiempo a todos los clientes
+    io.to(gameId).emit('timer-update', {
+      timeRemaining: game.timeRemaining
+    });
+
+    if (game.timeRemaining <= 0) {
+      clearInterval(game.turnTimer);
+    }
+  }, 1000);
+
+  // Timeout automático después de 90 segundos
+  game.turnTimeout = setTimeout(() => {
+    if (!game.playerWroteWord) {
+      console.log(`⏱️ Timeout automático: ${game.players[game.currentTurn].name} no escribió palabra`);
+      io.to(gameId).emit('timeout-alert', {
+        playerName: game.players[game.currentTurn].name,
+        message: `⏰ ${game.players[game.currentTurn].name} no escribió ninguna palabra`
+      });
+    }
+    // Limpiar timer y pasar al siguiente turno
+    clearInterval(game.turnTimer);
+    nextTurn(gameId, io, games);
+  }, 90000);
 }
 
 // WebSocket connections
@@ -580,13 +616,42 @@ io.on('connection', (socket) => {
     });
 
     // Iniciar el primer turno inmediatamente
-    game.playerWroteWord = false; // Rastrear si escribió palabra
+    game.playerWroteWord = false;
+    game.timeRemaining = 90;
+    
+    // Enviar evento inicial de turno
     io.to(gameId).emit('next-turn', {
       currentTurn: game.currentTurn,
       playerName: game.players[game.currentTurn].name,
       phase: 'writing',
-      duration: 90000
+      timeRemaining: game.timeRemaining
     });
+
+    // Actualizar tiempo cada segundo
+    game.turnTimer = setInterval(() => {
+      game.timeRemaining--;
+      
+      io.to(gameId).emit('timer-update', {
+        timeRemaining: game.timeRemaining
+      });
+
+      if (game.timeRemaining <= 0) {
+        clearInterval(game.turnTimer);
+      }
+    }, 1000);
+
+    // Timeout automático
+    game.turnTimeout = setTimeout(() => {
+      if (!game.playerWroteWord) {
+        console.log(`⏱️ Timeout automático: ${game.players[game.currentTurn].name} no escribió palabra`);
+        io.to(gameId).emit('timeout-alert', {
+          playerName: game.players[game.currentTurn].name,
+          message: `⏰ ${game.players[game.currentTurn].name} no escribió ninguna palabra`
+        });
+      }
+      clearInterval(game.turnTimer);
+      nextTurn(gameId, io, games);
+    }, 90000);
 
     console.log(`🎮 Partida ${gameId} iniciada - Palabra: ${palabraSecreta}`);
     console.log(`▶️ Primer turno: ${game.players[game.currentTurn].name} (índice ${game.currentTurn})`);
@@ -604,6 +669,10 @@ io.on('connection', (socket) => {
 
     game.playerWroteWord = true; // Marcar que escribió palabra
 
+    // Limpiar temporizadores
+    if (game.turnTimer) clearInterval(game.turnTimer);
+    if (game.turnTimeout) clearTimeout(game.turnTimeout);
+
     // Notificar a todos que el jugador escribió su palabra
     io.to(gameId).emit('word-submitted', {
       playerIndex,
@@ -615,24 +684,7 @@ io.on('connection', (socket) => {
     nextTurn(gameId, io, games);
   });
 
-  // Tiempo agotado para escribir palabra
-  socket.on('turn-timeout', ({ gameId }) => {
-    const game = games.get(gameId);
-    if (!game || !game.started) return;
-
-    console.log(`⏱️ Tiempo agotado para ${game.players[game.currentTurn].name}`);
-
-    // Si no escribió palabra, mostrar alerta en el chat
-    if (!game.playerWroteWord) {
-      io.to(gameId).emit('timeout-alert', {
-        playerName: game.players[game.currentTurn].name,
-        message: `⏰ ${game.players[game.currentTurn].name} no escribió ninguna palabra`
-      });
-    }
-
-    // Pasar inmediatamente al siguiente turno
-    nextTurn(gameId, io, games);
-  });
+  // El timeout ahora es manejado automáticamente desde nextTurn()
 
   // Mensaje de chat
   socket.on('send-message', ({ gameId, message }) => {

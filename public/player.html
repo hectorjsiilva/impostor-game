@@ -827,8 +827,8 @@
 
     // ========== FUNCIONES DEL JUEGO ==========
     
-    let timerInterval = null;
-    let timeRemaining = 0;
+    // Tiempo se sincroniza desde el servidor
+    window.timeRemaining = 0;
 
     function toggleCard() {
       const cardFront = document.getElementById('cardFront');
@@ -850,8 +850,8 @@
       }
     }
 
-    function updateTurnInfo(turnIndex, playerName, phase, duration) {
-      console.log(`🔄 Turno: ${playerName}, Fase: ${phase}, Duración: ${duration}s`);
+    function updateTurnInfo(turnIndex, playerName, phase, timeRemaining) {
+      console.log(`🔄 Turno: ${playerName}, Fase: ${phase}, Tiempo: ${timeRemaining}s`);
       console.log(`🎮 turnIndex: ${turnIndex}, mi playerIndex: ${window.gameData.playerIndex}`);
       
       const currentPlayerName = document.getElementById('currentPlayerName');
@@ -882,12 +882,9 @@
         if (chatInput) chatInput.disabled = false;
         if (sendBtn) sendBtn.disabled = false;
         
-        // Iniciar temporizador
-        startTimer(duration / 1000, () => {
-          if (isMyTurn) {
-            socket.emit('turn-timeout', { gameId });
-          }
-        });
+        // Establecer tiempo inicial del servidor
+        window.timeRemaining = timeRemaining;
+        updateTimerDisplay();
         
       } else if (phase === 'chatting') {
         // Fase de chat
@@ -898,40 +895,21 @@
         if (chatInput) chatInput.disabled = false;
         if (sendBtn) sendBtn.disabled = false;
         
-        // Iniciar temporizador
-        startTimer(duration / 1000);
-      }
-    }
-
-    function startTimer(seconds, onComplete) {
-      // Limpiar temporizador anterior
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-      
-      timeRemaining = seconds;
-      updateTimerDisplay();
-      
-      timerInterval = setInterval(() => {
-        timeRemaining--;
+        // Establecer tiempo inicial del servidor
+        window.timeRemaining = timeRemaining;
         updateTimerDisplay();
-        
-        if (timeRemaining <= 0) {
-          clearInterval(timerInterval);
-          if (onComplete) onComplete();
-        }
-      }, 1000);
+      }
     }
 
     function updateTimerDisplay() {
       const timerEl = document.getElementById('timer');
-      const minutes = Math.floor(timeRemaining / 60);
-      const seconds = timeRemaining % 60;
+      const minutes = Math.floor(window.timeRemaining / 60);
+      const seconds = window.timeRemaining % 60;
       
       timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
       // Agregar clase de advertencia si quedan menos de 10 segundos
-      if (timeRemaining <= 10 && timeRemaining > 0) {
+      if (window.timeRemaining <= 10 && window.timeRemaining > 0) {
         timerEl.className = 'timer warning';
       } else {
         timerEl.className = 'timer';
@@ -980,7 +958,13 @@
     socket.on('next-turn', (data) => {
       console.log('➡️ Siguiente turno:', data);
       window.gameData.currentTurn = data.currentTurn;
-      updateTurnInfo(data.currentTurn, data.playerName, data.phase, data.duration);
+      updateTurnInfo(data.currentTurn, data.playerName, data.phase, data.timeRemaining);
+    });
+
+    // Recibir actualizaciones de tiempo del servidor
+    socket.on('timer-update', (data) => {
+      window.timeRemaining = data.timeRemaining;
+      updateTimerDisplay();
     });
 
     socket.on('phase-change', (data) => {

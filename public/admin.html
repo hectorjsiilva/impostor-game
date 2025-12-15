@@ -688,8 +688,9 @@
         sendBtn.disabled = false;
       }
       
-      // Iniciar timer inicial
-      startAdminTimer(45);
+      // Establecer tiempo inicial (se actualizará con timer-update)
+      window.adminTimeRemaining = 90;
+      updateAdminTimerDisplay();
     }
     
     let adminCardRevealed = false;
@@ -756,8 +757,9 @@
         sendBtn.disabled = false;
       }
       
-      // Iniciar timer
-      startAdminTimer(data.duration / 1000);
+      // Establecer tiempo del servidor
+      window.adminTimeRemaining = data.timeRemaining;
+      updateAdminTimerDisplay();
     });
     
     socket.on('phase-change', (data) => {
@@ -774,40 +776,36 @@
         sendBtn.disabled = false;
       }
       
-      // Iniciar timer para nueva fase
-      startAdminTimer(data.duration / 1000);
+      // Establecer tiempo del servidor
+      window.adminTimeRemaining = data.timeRemaining;
+      updateAdminTimerDisplay();
     });
     
-    let adminTimerInterval = null;
+    window.adminTimeRemaining = 0;
     
-    function startAdminTimer(seconds) {
-      if (adminTimerInterval) clearInterval(adminTimerInterval);
-      
-      let timeLeft = seconds;
+    function updateAdminTimerDisplay() {
       const timerEl = document.getElementById('adminTimer');
+      if (!timerEl) return;
       
-      function updateDisplay() {
-        if (timerEl) {
-          timerEl.textContent = timeLeft;
-          if (timeLeft <= 10) {
-            timerEl.style.color = '#ff0844';
-            timerEl.style.animation = 'blink 1s infinite';
-          } else {
-            timerEl.style.color = '#667eea';
-            timerEl.style.animation = 'none';
-          }
-        }
+      const minutes = Math.floor(window.adminTimeRemaining / 60);
+      const seconds = window.adminTimeRemaining % 60;
+      
+      timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (window.adminTimeRemaining <= 10 && window.adminTimeRemaining > 0) {
+        timerEl.style.color = '#ff0844';
+        timerEl.style.animation = 'blink 1s infinite';
+      } else {
+        timerEl.style.color = '#667eea';
+        timerEl.style.animation = 'none';
       }
-      
-      updateDisplay();
-      
-      adminTimerInterval = setInterval(() => {
-        timeLeft--;
-        updateDisplay();
-        
-        if (timeLeft <= 0) {
-          clearInterval(adminTimerInterval);
-        }
+    }
+    
+    // Recibir actualizaciones de tiempo del servidor
+    socket.on('timer-update', (data) => {
+      window.adminTimeRemaining = data.timeRemaining;
+      updateAdminTimerDisplay();
+    });
       }, 1000);
     }
     
