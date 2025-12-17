@@ -115,7 +115,7 @@ app.get('/game/:gameId', (req, res) => {
 app.post('/api/auth/signup', async (req, res) => {
   try {
     console.log('📝 Petición de registro recibida:', req.body);
-    const { username, email, password } = req.body;
+    const { username, email, password, avatar } = req.body;
     
     if (!username || !email || !password) {
       console.log('❌ Faltan campos');
@@ -128,11 +128,12 @@ app.post('/api/auth/signup', async (req, res) => {
     }
 
     console.log('✅ Creando usuario...');
-    const user = userDB.create(username, email, password);
+    const user = userDB.create(username, email, password, avatar || 'avatar1');
     console.log('✅ Usuario creado:', user.id);
     
     req.session.userId = user.id;
     req.session.username = user.username;
+    req.session.avatar = user.avatar;
     
     // Forzar guardar la sesión antes de responder
     req.session.save((err) => {
@@ -141,7 +142,7 @@ app.post('/api/auth/signup', async (req, res) => {
         return res.status(500).json({ error: 'Error al crear sesión' });
       }
       console.log('✅ Sesión guardada correctamente');
-      res.json({ success: true, user: { id: user.id, username: user.username } });
+      res.json({ success: true, user: { id: user.id, username: user.username, avatar: user.avatar } });
     });
   } catch (error) {
     console.error('❌ Error en signup:', error);

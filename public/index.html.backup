@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Impostor - Juego Multijugador Online</title>
-  <link rel="stylesheet" href="/dopamine-theme.css">
   <style>
     * {
       margin: 0;
@@ -475,11 +474,6 @@
           <label for="signupPasswordConfirm">Confirmar Contraseña</label>
           <input type="password" id="signupPasswordConfirm" required minlength="6">
         </div>
-        <div class="form-group">
-          <label>Elige tu Avatar</label>
-          <div id="avatarSelector"></div>
-          <input type="hidden" id="selectedAvatar" value="avatar1">
-        </div>
         <button type="submit" class="btn-submit">Registrarse</button>
       </form>
       <div class="form-switch">
@@ -488,23 +482,9 @@
     </div>
   </div>
 
-  <script src="/avatars.js"></script>
   <script>
     function openModal(type) {
       document.getElementById(type + 'Modal').classList.add('active');
-      
-      // Inicializar selector de avatares cuando se abre el modal de signup
-      if (type === 'signup' && !document.getElementById('avatarSelector').hasChildNodes()) {
-        const selector = createAvatarSelector((avatarId) => {
-          document.getElementById('selectedAvatar').value = avatarId;
-        });
-        document.getElementById('avatarSelector').appendChild(selector);
-        // Seleccionar el primero por defecto
-        setTimeout(() => {
-          const firstAvatar = document.querySelector('#avatarSelector .avatar-container');
-          if (firstAvatar) firstAvatar.click();
-        }, 100);
-      }
     }
 
     function closeModal(type) {
@@ -563,7 +543,6 @@
       const email = document.getElementById('signupEmail').value;
       const password = document.getElementById('signupPassword').value;
       const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
-      const avatar = document.getElementById('selectedAvatar').value;
 
       if (password !== passwordConfirm) {
         showAlert('danger', 'Las contraseñas no coinciden', 'signupAlert');
@@ -574,7 +553,7 @@
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password, avatar })
+          body: JSON.stringify({ username, email, password })
         });
 
         const data = await response.json();

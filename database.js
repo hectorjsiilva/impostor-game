@@ -12,6 +12,7 @@ db.exec(`
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
+    avatar TEXT DEFAULT 'avatar1',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     games_played INTEGER DEFAULT 0,
     games_won INTEGER DEFAULT 0,
@@ -45,12 +46,12 @@ db.exec(`
 // Funciones de usuario
 const userDB = {
   // Crear usuario
-  create: (username, email, password) => {
+  create: (username, email, password, avatar = 'avatar1') => {
     try {
       const hashedPassword = bcrypt.hashSync(password, 10);
-      const stmt = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
-      const result = stmt.run(username, email, hashedPassword);
-      return { id: result.lastInsertRowid, username, email };
+      const stmt = db.prepare('INSERT INTO users (username, email, password, avatar) VALUES (?, ?, ?, ?)');
+      const result = stmt.run(username, email, hashedPassword, avatar);
+      return { id: result.lastInsertRowid, username, email, avatar };
     } catch (error) {
       if (error.message.includes('UNIQUE constraint failed')) {
         if (error.message.includes('username')) {
@@ -78,7 +79,7 @@ const userDB = {
 
   // Encontrar por ID
   findById: (id) => {
-    const stmt = db.prepare('SELECT id, username, email, games_played, games_won, times_impostor, times_innocent FROM users WHERE id = ?');
+    const stmt = db.prepare('SELECT id, username, email, avatar, games_played, games_won, times_impostor, times_innocent FROM users WHERE id = ?');
     return stmt.get(id);
   },
 
