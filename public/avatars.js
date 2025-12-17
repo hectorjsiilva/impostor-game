@@ -132,6 +132,19 @@ function createAvatarSelector(onSelect) {
     margin: 20px 0;
   `;
   
+  // Responsive grid para móvil
+  if (window.innerWidth <= 768) {
+    container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    container.style.gap = '12px';
+    container.style.padding = '15px';
+  }
+  
+  if (window.innerWidth <= 480) {
+    container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    container.style.gap = '10px';
+    container.style.padding = '12px';
+  }
+  
   Object.keys(AVATARS).forEach(avatarId => {
     const avatarEl = createAvatarElement(avatarId, 'medium', true);
     avatarEl.dataset.avatar = avatarId; // Agregar data-avatar

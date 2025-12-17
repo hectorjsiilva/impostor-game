@@ -145,6 +145,76 @@
     .nav-buttons {
       display: flex;
       gap: 15px;
+      align-items: center;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .hamburger:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: white;
+      border-radius: 3px;
+      transition: all 0.3s;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 80px;
+      left: 0;
+      right: 0;
+      background: var(--dark-surface);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 999;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .mobile-menu.active {
+      display: flex;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .mobile-menu .btn-nav {
+      width: 100%;
+      text-align: center;
     }
 
     .btn-nav {
@@ -723,12 +793,67 @@
         padding: 15px 20px;
       }
 
+      .logo {
+        font-size: 1.4em;
+      }
+
+      .nav-buttons {
+        display: none;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+
       .hero {
         padding: 100px 20px 60px;
       }
 
+      .hero-badge {
+        font-size: 0.8em;
+        padding: 8px 16px;
+      }
+
+      .hero h1 {
+        font-size: clamp(2em, 10vw, 3.5em);
+        margin-bottom: 15px;
+      }
+
+      .hero .subtitle {
+        font-size: clamp(1em, 4vw, 1.3em);
+        margin-bottom: 35px;
+        padding: 0 10px;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 350px;
+        margin: 0 auto;
+      }
+
+      .btn-hero {
+        width: 100%;
+        padding: 16px 35px;
+        font-size: 1em;
+      }
+
       .hero-stats {
-        gap: 40px;
+        gap: 30px;
+        margin-top: 60px;
+        flex-wrap: wrap;
+      }
+
+      .stat-item {
+        min-width: 100px;
+      }
+
+      .stat-number {
+        font-size: 2.2em;
+      }
+
+      .stat-label {
+        font-size: 0.85em;
       }
 
       .features-section,
@@ -737,22 +862,202 @@
         padding: 80px 20px;
       }
 
+      .section-title h2 {
+        font-size: clamp(2em, 8vw, 3em);
+      }
+
+      .section-title p {
+        font-size: 1.1em;
+        padding: 0 10px;
+      }
+
       .features-grid {
         grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      .feature-card {
+        padding: 35px 25px;
+      }
+
+      .feature-icon {
+        font-size: 3.5em;
+        margin-bottom: 20px;
+      }
+
+      .feature-card h3 {
+        font-size: 1.3em;
+      }
+
+      .feature-card p {
+        font-size: 0.95em;
+      }
+
+      .steps-container {
+        gap: 30px;
       }
 
       .step-item {
         flex-direction: column;
         text-align: center;
+        padding: 30px 25px;
+        gap: 20px;
+      }
+
+      .step-number {
+        width: 55px;
+        height: 55px;
+        font-size: 1.6em;
+      }
+
+      .step-content h3 {
+        font-size: 1.4em;
+      }
+
+      .step-content p {
+        font-size: 0.95em;
+      }
+
+      .cta-content h2 {
+        font-size: clamp(2em, 8vw, 3em);
+        margin-bottom: 20px;
+      }
+
+      .cta-content p {
+        font-size: 1.1em;
+        margin-bottom: 35px;
+        padding: 0 10px;
       }
 
       .modal-content {
-        padding: 40px 30px;
+        padding: 35px 25px;
+        max-width: 95%;
+        max-height: 95vh;
+      }
+
+      .modal-header h2 {
+        font-size: 2em;
+      }
+
+      .modal-header p {
+        font-size: 1em;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        font-size: 0.9em;
+        margin-bottom: 8px;
+      }
+
+      .form-group input {
+        padding: 13px 18px;
+        font-size: 0.95em;
+      }
+
+      .btn-submit {
+        padding: 16px;
+        font-size: 1em;
+      }
+
+      .form-switch {
+        font-size: 0.9em;
+        margin-top: 25px;
+      }
+
+      .close {
+        font-size: 1.8em;
+        top: 15px;
+        right: 20px;
+      }
+      
+      /* Avatar selector responsive para tablet */
+      .avatar-selector {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 12px !important;
+        padding: 15px !important;
+      }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 12px 15px;
+      }
+
+      .logo {
+        font-size: 1.2em;
+      }
+
+      .nav-buttons {
+        gap: 10px;
       }
 
       .btn-nav {
-        padding: 10px 20px;
-        font-size: 0.9em;
+        padding: 8px 20px;
+        font-size: 0.75em;
+      }
+
+      .hero {
+        padding: 90px 15px 50px;
+      }
+
+      .hero h1 {
+        font-size: 2em;
+      }
+
+      .hero .subtitle {
+        font-size: 1em;
+      }
+
+      .btn-hero {
+        padding: 14px 30px;
+        font-size: 0.95em;
+      }
+
+      .stat-number {
+        font-size: 2em;
+      }
+
+      .stat-label {
+        font-size: 0.8em;
+      }
+
+      .section-title h2 {
+        font-size: 1.8em;
+      }
+
+      .section-title p {
+        font-size: 1em;
+      }
+
+      .feature-card {
+        padding: 30px 20px;
+      }
+
+      .feature-icon {
+        font-size: 3em;
+      }
+
+      .feature-card h3 {
+        font-size: 1.2em;
+      }
+
+      .modal-content {
+        padding: 30px 20px;
+      }
+
+      .modal-header h2 {
+        font-size: 1.8em;
+      }
+      
+      /* Avatar selector más compacto en móvil */
+      .avatar-selector {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 12px !important;
       }
     }
 
@@ -791,7 +1096,18 @@
       <button class="btn-nav btn-login" onclick="openModal('login')">Iniciar Sesión</button>
       <button class="btn-nav btn-signup" onclick="openModal('signup')">Registrarse</button>
     </div>
+    <div class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="btn-nav btn-login" onclick="openModal('login'); closeMobileMenu()">Iniciar Sesión</button>
+    <button class="btn-nav btn-signup" onclick="openModal('signup'); closeMobileMenu()">Registrarse</button>
+  </div>
 
   <!-- Hero Section -->
   <section class="hero">
@@ -976,6 +1292,21 @@
 
   <script src="/avatars.js"></script>
   <script>
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const hamburger = document.getElementById('hamburger');
+      menu.classList.toggle('active');
+      hamburger.classList.toggle('active');
+    }
+
+    function closeMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const hamburger = document.getElementById('hamburger');
+      menu.classList.remove('active');
+      hamburger.classList.remove('active');
+    }
+
     // Navbar scroll effect
     window.addEventListener('scroll', () => {
       const navbar = document.getElementById('navbar');
