@@ -51,6 +51,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware para evitar cacheo de archivos HTML
+app.use((req, res, next) => {
+  if (req.path.endsWith('.html') || req.path === '/') {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 // Servir archivos estáticos
 app.use(express.static('public'));
 
