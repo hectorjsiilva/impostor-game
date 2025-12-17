@@ -454,6 +454,168 @@
       50% { transform: scale(1.05); }
     }
 
+    /* Estilos para la interfaz de llamada de voz */
+    .voice-call-container {
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      height: 100%;
+    }
+
+    .voice-call-header {
+      color: #333;
+      padding: 15px;
+      border-bottom: 2px solid #e9ecef;
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .voice-toggle-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95em;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .voice-toggle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .voice-toggle-btn.in-call {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+
+    .voice-participants {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+
+    .voice-participant {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+      border: 3px solid transparent;
+    }
+
+    .voice-participant.speaking {
+      border-color: #28a745;
+      box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+      transform: scale(1.02);
+    }
+
+    .voice-participant.muted {
+      opacity: 0.7;
+    }
+
+    .participant-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .participant-info {
+      flex: 1;
+    }
+
+    .participant-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 1.1em;
+      margin-bottom: 4px;
+    }
+
+    .participant-status {
+      font-size: 0.85em;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .voice-controls {
+      padding: 15px;
+      border-top: 2px solid #e9ecef;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      background: white;
+    }
+
+    .voice-control-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.3em;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .voice-control-btn.mute-btn {
+      background: #667eea;
+      color: white;
+    }
+
+    .voice-control-btn.mute-btn.muted {
+      background: #dc3545;
+    }
+
+    .voice-control-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .voice-control-btn:active {
+      transform: scale(0.95);
+    }
+
+    .speaking-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .muted-indicator {
+      color: #dc3545;
+    }
+
     @media (max-width: 600px) {
       .container {
         padding: 25px;
@@ -570,10 +732,16 @@
           </div>
         </div>
         
-        <!-- Panel derecho: Chat -->
+        <!-- Panel derecho: Chat / Llamada de Voz -->
         <div>
-          <div style="background: white; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h3 style="color: #333; padding: 15px; border-bottom: 2px solid #e9ecef; margin: 0;">💬 Chat</h3>
+          <!-- Vista de Chat (por defecto) -->
+          <div id="chatView" style="background: white; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 2px solid #e9ecef;">
+              <h3 style="color: #333; margin: 0;">💬 Chat</h3>
+              <button class="voice-toggle-btn" onclick="toggleVoiceCall()" id="voiceToggleBtn">
+                🎤 Entrar en Llamada
+              </button>
+            </div>
             <div class="chat-messages" id="chatMessages"></div>
             <div class="chat-input-container">
               <input type="text" 
@@ -582,6 +750,26 @@
                      placeholder="Escribe un mensaje..." 
                      onkeypress="if(event.key==='Enter') sendMessage()">
               <button class="send-btn" onclick="sendMessage()">Enviar</button>
+            </div>
+          </div>
+
+          <!-- Vista de Llamada de Voz (oculta por defecto) -->
+          <div id="voiceCallView" class="voice-call-container" style="display: none;">
+            <div class="voice-call-header">
+              <h3 style="margin: 0;">🎤 Llamada de Voz</h3>
+              <button class="voice-toggle-btn in-call" onclick="toggleVoiceCall()" id="voiceExitBtn">
+                📞 Salir de la Llamada
+              </button>
+            </div>
+            <div class="voice-participants" id="voiceParticipants">
+              <div style="text-align: center; color: #666; padding: 20px;">
+                Conectándote a la llamada...
+              </div>
+            </div>
+            <div class="voice-controls">
+              <button class="voice-control-btn mute-btn" onclick="toggleMute()" id="muteBtn" title="Silenciar/Activar micrófono">
+                🎤
+              </button>
             </div>
           </div>
         </div>
@@ -593,6 +781,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script>
     const socket = io();
     let gameId = null;
@@ -1037,6 +1226,415 @@
         e.returnValue = '';
       }
     });
+
+    // ============ SISTEMA DE LLAMADAS DE VOZ CON WEBRTC ============
+    
+    let peer = null;
+    let myStream = null;
+    let peers = new Map(); // Map de peerId -> {call, audioElement, analyser}
+    let isInCall = false;
+    let isMuted = false;
+    let audioContext = null;
+    let myAnalyser = null;
+
+    // Inicializar PeerJS cuando el juego empiece
+    function initializePeer() {
+      if (peer) return;
+      
+      const peerId = `${gameId}-${socket.id}`;
+      
+      peer = new Peer(peerId, {
+        host: window.location.hostname,
+        port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
+        path: '/peerjs',
+        secure: window.location.protocol === 'https:',
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
+      });
+
+      peer.on('open', (id) => {
+        console.log('🎤 Peer conectado con ID:', id);
+        // Notificar al servidor que estoy listo para llamadas
+        socket.emit('peer-ready', { gameId, peerId: id, playerName });
+      });
+
+      peer.on('call', (call) => {
+        console.log('📞 Recibiendo llamada de:', call.peer);
+        
+        // Si estoy en llamada, contestar automáticamente
+        if (isInCall && myStream) {
+          call.answer(myStream);
+          setupCall(call);
+        }
+      });
+
+      peer.on('error', (error) => {
+        console.error('❌ Error de Peer:', error);
+      });
+    }
+
+    // Configurar una llamada recibida o realizada
+    function setupCall(call) {
+      call.on('stream', (remoteStream) => {
+        console.log('🔊 Stream recibido de:', call.peer);
+        
+        // Crear elemento de audio para reproducir
+        const audio = new Audio();
+        audio.srcObject = remoteStream;
+        audio.play().catch(e => console.error('Error al reproducir audio:', e));
+        
+        // Configurar análisis de audio para detectar cuando habla
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const source = audioContext.createMediaStreamSource(remoteStream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        
+        // Guardar referencia
+        peers.set(call.peer, {
+          call,
+          audioElement: audio,
+          analyser
+        });
+        
+        // Iniciar detección de voz para este peer
+        detectVoiceActivity(call.peer, analyser);
+      });
+
+      call.on('close', () => {
+        console.log('📞 Llamada cerrada:', call.peer);
+        const peerData = peers.get(call.peer);
+        if (peerData && peerData.audioElement) {
+          peerData.audioElement.pause();
+          peerData.audioElement.srcObject = null;
+        }
+        peers.delete(call.peer);
+        updateVoiceParticipants();
+      });
+    }
+
+    // Detectar actividad de voz
+    function detectVoiceActivity(peerId, analyser) {
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      function check() {
+        if (!peers.has(peerId)) return; // Dejar de chequear si ya no está
+        
+        analyser.getByteFrequencyData(dataArray);
+        
+        // Calcular volumen promedio
+        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+        
+        // Umbral de detección de voz (ajustable)
+        const threshold = 25;
+        const isSpeaking = average > threshold;
+        
+        // Actualizar UI
+        updateParticipantSpeaking(peerId, isSpeaking);
+        
+        requestAnimationFrame(check);
+      }
+      
+      check();
+    }
+
+    // Detectar mi propia voz
+    function detectMyVoice() {
+      if (!myStream || !myAnalyser) return;
+      
+      const bufferLength = myAnalyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      function check() {
+        if (!isInCall) return;
+        
+        myAnalyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+        const threshold = 25;
+        const isSpeaking = average > threshold && !isMuted;
+        
+        updateParticipantSpeaking(`${gameId}-${socket.id}`, isSpeaking);
+        
+        requestAnimationFrame(check);
+      }
+      
+      check();
+    }
+
+    // Alternar entre chat y llamada de voz
+    async function toggleVoiceCall() {
+      if (!isInCall) {
+        // Entrar en llamada
+        await enterVoiceCall();
+      } else {
+        // Salir de llamada
+        leaveVoiceCall();
+      }
+    }
+
+    // Entrar en la llamada de voz
+    async function enterVoiceCall() {
+      try {
+        console.log('🎤 Entrando en llamada de voz...');
+        
+        // Solicitar acceso al micrófono
+        myStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }, 
+          video: false 
+        });
+        
+        // Configurar análisis de mi propia voz
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const source = audioContext.createMediaStreamSource(myStream);
+        myAnalyser = audioContext.createAnalyser();
+        myAnalyser.fftSize = 256;
+        source.connect(myAnalyser);
+        
+        // Inicializar peer si no existe
+        if (!peer) {
+          initializePeer();
+          // Esperar un momento para que peer se conecte
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        isInCall = true;
+        
+        // Cambiar UI
+        document.getElementById('chatView').style.display = 'none';
+        document.getElementById('voiceCallView').style.display = 'flex';
+        
+        // Solicitar lista de peers activos
+        socket.emit('request-peers', { gameId });
+        
+        // Detectar mi voz
+        detectMyVoice();
+        
+        console.log('✅ En llamada de voz');
+      } catch (error) {
+        console.error('❌ Error al acceder al micrófono:', error);
+        alert('No se pudo acceder al micrófono. Por favor, otorga los permisos necesarios.');
+      }
+    }
+
+    // Salir de la llamada de voz
+    function leaveVoiceCall() {
+      console.log('📞 Saliendo de la llamada...');
+      
+      // Detener mi stream
+      if (myStream) {
+        myStream.getTracks().forEach(track => track.stop());
+        myStream = null;
+      }
+      
+      // Cerrar todas las llamadas
+      peers.forEach((peerData, peerId) => {
+        if (peerData.call) {
+          peerData.call.close();
+        }
+        if (peerData.audioElement) {
+          peerData.audioElement.pause();
+          peerData.audioElement.srcObject = null;
+        }
+      });
+      peers.clear();
+      
+      isInCall = false;
+      isMuted = false;
+      
+      // Cambiar UI
+      document.getElementById('chatView').style.display = 'flex';
+      document.getElementById('voiceCallView').style.display = 'none';
+      
+      // Actualizar botón de mute
+      const muteBtn = document.getElementById('muteBtn');
+      muteBtn.classList.remove('muted');
+      muteBtn.textContent = '🎤';
+      
+      console.log('✅ Llamada finalizada');
+    }
+
+    // Silenciar/Activar micrófono
+    function toggleMute() {
+      if (!myStream) return;
+      
+      isMuted = !isMuted;
+      myStream.getAudioTracks()[0].enabled = !isMuted;
+      
+      const muteBtn = document.getElementById('muteBtn');
+      if (isMuted) {
+        muteBtn.classList.add('muted');
+        muteBtn.textContent = '🔇';
+      } else {
+        muteBtn.classList.remove('muted');
+        muteBtn.textContent = '🎤';
+      }
+      
+      // Notificar cambio de estado
+      socket.emit('mute-status', { gameId, playerName, isMuted });
+      updateVoiceParticipants();
+    }
+
+    // Actualizar lista de participantes en la llamada
+    function updateVoiceParticipants() {
+      const container = document.getElementById('voiceParticipants');
+      if (!container) return;
+      
+      // Obtener lista de jugadores del juego
+      const allPlayers = window.gameData?.allPlayers || [];
+      
+      container.innerHTML = '';
+      
+      // Agregar mi propio participante primero
+      const myParticipant = createParticipantElement(playerName, true, isMuted, false);
+      container.appendChild(myParticipant);
+      
+      // Agregar otros jugadores
+      allPlayers.forEach(player => {
+        if (player.name !== playerName) {
+          const participant = createParticipantElement(player.name, false, false, false);
+          container.appendChild(participant);
+        }
+      });
+    }
+
+    // Crear elemento visual de participante
+    function createParticipantElement(name, isMe, muted, speaking) {
+      const div = document.createElement('div');
+      div.className = 'voice-participant';
+      div.dataset.participantName = name;
+      if (speaking) div.classList.add('speaking');
+      if (muted) div.classList.add('muted');
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'participant-avatar';
+      avatar.textContent = name.charAt(0).toUpperCase();
+      
+      const info = document.createElement('div');
+      info.className = 'participant-info';
+      
+      const nameEl = document.createElement('div');
+      nameEl.className = 'participant-name';
+      nameEl.textContent = name + (isMe ? ' (Tú)' : '');
+      
+      const status = document.createElement('div');
+      status.className = 'participant-status';
+      
+      if (muted) {
+        status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
+      } else if (speaking) {
+        status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+      } else {
+        status.innerHTML = '🎤 En llamada';
+      }
+      
+      info.appendChild(nameEl);
+      info.appendChild(status);
+      div.appendChild(avatar);
+      div.appendChild(info);
+      
+      return div;
+    }
+
+    // Actualizar indicador visual cuando alguien habla
+    function updateParticipantSpeaking(peerId, isSpeaking) {
+      // Encontrar el nombre del jugador por peerId
+      // El peerId tiene formato: gameId-socketId
+      const participants = document.querySelectorAll('.voice-participant');
+      
+      // Para mi propio peer
+      if (peerId === `${gameId}-${socket.id}`) {
+        const myParticipant = document.querySelector(`.voice-participant[data-participant-name="${playerName}"]`);
+        if (myParticipant) {
+          if (isSpeaking) {
+            myParticipant.classList.add('speaking');
+            const status = myParticipant.querySelector('.participant-status');
+            status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+          } else {
+            myParticipant.classList.remove('speaking');
+            const status = myParticipant.querySelector('.participant-status');
+            if (isMuted) {
+              status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
+            } else {
+              status.innerHTML = '🎤 En llamada';
+            }
+          }
+        }
+      }
+      // Para otros peers, necesitamos mapear el peerId al nombre
+      // Esto se maneja en el evento 'peers-list'
+    }
+
+    // Eventos de Socket.io para coordinación de llamadas
+    socket.on('peers-list', (data) => {
+      console.log('📋 Lista de peers recibida:', data.peers);
+      
+      // Llamar a cada peer en la lista
+      data.peers.forEach(peerInfo => {
+        if (peerInfo.peerId !== `${gameId}-${socket.id}` && !peers.has(peerInfo.peerId)) {
+          console.log('📞 Llamando a:', peerInfo.playerName, peerInfo.peerId);
+          const call = peer.call(peerInfo.peerId, myStream);
+          setupCall(call);
+        }
+      });
+      
+      updateVoiceParticipants();
+    });
+
+    socket.on('new-peer', (data) => {
+      console.log('👤 Nuevo peer disponible:', data.playerName, data.peerId);
+      
+      // Si estoy en llamada, llamar al nuevo peer
+      if (isInCall && myStream && data.peerId !== `${gameId}-${socket.id}`) {
+        setTimeout(() => {
+          const call = peer.call(data.peerId, myStream);
+          setupCall(call);
+        }, 500);
+      }
+    });
+
+    socket.on('peer-left', (data) => {
+      console.log('👋 Peer se fue:', data.peerId);
+      const peerData = peers.get(data.peerId);
+      if (peerData) {
+        if (peerData.call) peerData.call.close();
+        if (peerData.audioElement) {
+          peerData.audioElement.pause();
+          peerData.audioElement.srcObject = null;
+        }
+        peers.delete(data.peerId);
+      }
+      updateVoiceParticipants();
+    });
+
+    socket.on('mute-status-update', (data) => {
+      console.log('🔇 Estado de mute actualizado:', data.playerName, data.isMuted);
+      updateVoiceParticipants();
+    });
+
+    // Inicializar peer cuando el juego empiece
+    socket.on('game-started', (data) => {
+      // ... código existente de game-started ...
+      
+      // Inicializar sistema de voz
+      setTimeout(() => {
+        initializePeer();
+      }, 1000);
+    });
+
   </script>
 </body>
 </html>

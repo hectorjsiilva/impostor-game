@@ -6,12 +6,24 @@ const path = require('path');
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const { userDB, gameDB } = require('./database');
+const { ExpressPeerServer } = require('peer');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 const PORT = process.env.PORT || 3000;
+
+// Configurar servidor PeerJS para WebRTC
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
+  path: '/peerjs'
+});
 
 // Almacenamiento de partidas en memoria
 const games = new Map();
@@ -41,6 +53,9 @@ app.use((req, res, next) => {
 
 // Servir archivos estáticos
 app.use(express.static('public'));
+
+// Montar servidor PeerJS
+app.use('/peerjs', peerServer);
 
 // Middleware de autenticación
 const requireAuth = (req, res, next) => {
@@ -762,6 +777,55 @@ io.on('connection', (socket) => {
           }, 3600000); // 1 hora
         }
       }
+    });
+
+    // ============ EVENTOS PARA SISTEMA DE VOZ (WebRTC) ============
+    
+    socket.on('peer-ready', ({ gameId, peerId, playerName }) => {
+      const game = games.get(gameId);
+      if (!game) return;
+      
+      console.log(`🎤 Peer listo: ${playerName} (${peerId})`);
+      
+      // Guardar peerId en el jugador
+      const player = game.players.find(p => p.name === playerName);
+      if (player) {
+        player.peerId = peerId;
+      }
+      
+      // Notificar a otros jugadores que hay un nuevo peer disponible
+      socket.to(gameId).emit('new-peer', { peerId, playerName });
+    });
+    
+    socket.on('request-peers', ({ gameId }) => {
+      const game = games.get(gameId);
+      if (!game) return;
+      
+      // Enviar lista de peers activos
+      const peers = game.players
+        .filter(p => p.peerId)
+        .map(p => ({ peerId: p.peerId, playerName: p.name }));
+      
+      console.log(`📋 Enviando lista de ${peers.length} peers`);
+      socket.emit('peers-list', { peers });
+    });
+    
+    socket.on('mute-status', ({ gameId, playerName, isMuted }) => {
+      const game = games.get(gameId);
+      if (!game) return;
+      
+      // Notificar a todos sobre el cambio de estado de mute
+      io.to(gameId).emit('mute-status-update', { playerName, isMuted });
+    });
+
+    socket.on('disconnect', () => {
+      // Notificar que el peer se fue
+      games.forEach((game, gameId) => {
+        const player = game.players.find(p => p.id === socket.id);
+        if (player && player.peerId) {
+          io.to(gameId).emit('peer-left', { peerId: player.peerId, playerName: player.name });
+        }
+      });
     });
   });
 });

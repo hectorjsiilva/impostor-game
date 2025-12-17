@@ -218,6 +218,168 @@
       50% { opacity: 0.5; }
     }
 
+    /* Estilos para la interfaz de llamada de voz */
+    .voice-call-container {
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      height: 100%;
+    }
+
+    .voice-call-header {
+      color: #333;
+      padding: 15px;
+      border-bottom: 2px solid #e9ecef;
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .voice-toggle-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95em;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .voice-toggle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .voice-toggle-btn.in-call {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+
+    .voice-participants {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+
+    .voice-participant {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+      border: 3px solid transparent;
+    }
+
+    .voice-participant.speaking {
+      border-color: #28a745;
+      box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+      transform: scale(1.02);
+    }
+
+    .voice-participant.muted {
+      opacity: 0.7;
+    }
+
+    .participant-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .participant-info {
+      flex: 1;
+    }
+
+    .participant-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 1.1em;
+      margin-bottom: 4px;
+    }
+
+    .participant-status {
+      font-size: 0.85em;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .voice-controls {
+      padding: 15px;
+      border-top: 2px solid #e9ecef;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      background: white;
+    }
+
+    .voice-control-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.3em;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .voice-control-btn.mute-btn {
+      background: #667eea;
+      color: white;
+    }
+
+    .voice-control-btn.mute-btn.muted {
+      background: #dc3545;
+    }
+
+    .voice-control-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .voice-control-btn:active {
+      transform: scale(0.95);
+    }
+
+    .speaking-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .muted-indicator {
+      color: #dc3545;
+    }
+
     @media (max-width: 600px) {
       .container {
         padding: 25px;
@@ -276,6 +438,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script>
     const socket = io();
     let currentGameId = null;
@@ -630,14 +793,40 @@
             </div>
           </div>
           
-          <!-- Panel derecho: Chat -->
+          <!-- Panel derecho: Chat / Llamada de Voz -->
           <div>
-            <div style="background: white; border-radius: 10px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h3 style="color: #333; padding: 15px; border-bottom: 2px solid #e9ecef; margin: 0;">💬 Chat</h3>
+            <!-- Vista de Chat (por defecto) -->
+            <div id="adminChatView" style="background: white; border-radius: 10px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 2px solid #e9ecef;">
+                <h3 style="color: #333; margin: 0;">💬 Chat</h3>
+                <button class="voice-toggle-btn" onclick="toggleAdminVoiceCall()" id="adminVoiceToggleBtn">
+                  🎤 Entrar en Llamada
+                </button>
+              </div>
               <div id="adminChatMessages" style="flex: 1; overflow-y: auto; padding: 15px; background: #f8f9fa;"></div>
               <div style="display: flex; padding: 15px; background: white; border-top: 2px solid #e9ecef;">
                 <input type="text" id="adminChatInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1em;" onkeypress="if(event.key==='Enter') sendAdminMessage()">
                 <button onclick="sendAdminMessage()" style="margin-left: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Enviar</button>
+              </div>
+            </div>
+
+            <!-- Vista de Llamada de Voz (oculta por defecto) -->
+            <div id="adminVoiceCallView" class="voice-call-container" style="display: none;">
+              <div class="voice-call-header">
+                <h3 style="margin: 0;">🎤 Llamada de Voz</h3>
+                <button class="voice-toggle-btn in-call" onclick="toggleAdminVoiceCall()" id="adminVoiceExitBtn">
+                  📞 Salir de la Llamada
+                </button>
+              </div>
+              <div class="voice-participants" id="adminVoiceParticipants">
+                <div style="text-align: center; color: #666; padding: 20px;">
+                  Conectándote a la llamada...
+                </div>
+              </div>
+              <div class="voice-controls">
+                <button class="voice-control-btn mute-btn" onclick="toggleAdminMute()" id="adminMuteBtn" title="Silenciar/Activar micrófono">
+                  🎤
+                </button>
               </div>
             </div>
           </div>
@@ -864,6 +1053,333 @@
       chatMessages.appendChild(messageDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     });
+
+    // ============ SISTEMA DE LLAMADAS DE VOZ PARA ADMIN ============
+    
+    let adminPeer = null;
+    let adminStream = null;
+    let adminPeers = new Map();
+    let isAdminInCall = false;
+    let isAdminMuted = false;
+    let adminAudioContext = null;
+    let adminMyAnalyser = null;
+
+    function initializeAdminPeer() {
+      if (adminPeer) return;
+      
+      const peerId = `${currentGameId}-${socket.id}`;
+      
+      adminPeer = new Peer(peerId, {
+        host: window.location.hostname,
+        port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
+        path: '/peerjs',
+        secure: window.location.protocol === 'https:',
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
+      });
+
+      adminPeer.on('open', (id) => {
+        console.log('🎤 Admin Peer conectado:', id);
+        socket.emit('peer-ready', { gameId: currentGameId, peerId: id, playerName: adminName });
+      });
+
+      adminPeer.on('call', (call) => {
+        console.log('📞 Admin recibiendo llamada de:', call.peer);
+        if (isAdminInCall && adminStream) {
+          call.answer(adminStream);
+          setupAdminCall(call);
+        }
+      });
+
+      adminPeer.on('error', (error) => {
+        console.error('❌ Error de Admin Peer:', error);
+      });
+    }
+
+    function setupAdminCall(call) {
+      call.on('stream', (remoteStream) => {
+        console.log('🔊 Admin recibió stream de:', call.peer);
+        
+        const audio = new Audio();
+        audio.srcObject = remoteStream;
+        audio.play().catch(e => console.error('Error al reproducir:', e));
+        
+        if (!adminAudioContext) {
+          adminAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const source = adminAudioContext.createMediaStreamSource(remoteStream);
+        const analyser = adminAudioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        
+        adminPeers.set(call.peer, { call, audioElement: audio, analyser });
+        detectAdminPeerVoice(call.peer, analyser);
+      });
+
+      call.on('close', () => {
+        const peerData = adminPeers.get(call.peer);
+        if (peerData && peerData.audioElement) {
+          peerData.audioElement.pause();
+          peerData.audioElement.srcObject = null;
+        }
+        adminPeers.delete(call.peer);
+        updateAdminVoiceParticipants();
+      });
+    }
+
+    function detectAdminPeerVoice(peerId, analyser) {
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      function check() {
+        if (!adminPeers.has(peerId)) return;
+        
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+        const isSpeaking = average > 25;
+        
+        updateAdminParticipantSpeaking(peerId, isSpeaking);
+        requestAnimationFrame(check);
+      }
+      check();
+    }
+
+    function detectAdminMyVoice() {
+      if (!adminStream || !adminMyAnalyser) return;
+      
+      const bufferLength = adminMyAnalyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      function check() {
+        if (!isAdminInCall) return;
+        
+        adminMyAnalyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+        const isSpeaking = average > 25 && !isAdminMuted;
+        
+        updateAdminParticipantSpeaking(`${currentGameId}-${socket.id}`, isSpeaking);
+        requestAnimationFrame(check);
+      }
+      check();
+    }
+
+    async function toggleAdminVoiceCall() {
+      if (!isAdminInCall) {
+        await enterAdminVoiceCall();
+      } else {
+        leaveAdminVoiceCall();
+      }
+    }
+
+    async function enterAdminVoiceCall() {
+      try {
+        console.log('🎤 Admin entrando en llamada...');
+        
+        adminStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          },
+          video: false
+        });
+        
+        if (!adminAudioContext) {
+          adminAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const source = adminAudioContext.createMediaStreamSource(adminStream);
+        adminMyAnalyser = adminAudioContext.createAnalyser();
+        adminMyAnalyser.fftSize = 256;
+        source.connect(adminMyAnalyser);
+        
+        if (!adminPeer) {
+          initializeAdminPeer();
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        isAdminInCall = true;
+        
+        document.getElementById('adminChatView').style.display = 'none';
+        document.getElementById('adminVoiceCallView').style.display = 'flex';
+        
+        socket.emit('request-peers', { gameId: currentGameId });
+        detectAdminMyVoice();
+        
+        console.log('✅ Admin en llamada');
+      } catch (error) {
+        console.error('❌ Error al acceder al micrófono:', error);
+        alert('No se pudo acceder al micrófono. Por favor, otorga los permisos necesarios.');
+      }
+    }
+
+    function leaveAdminVoiceCall() {
+      console.log('📞 Admin saliendo de la llamada...');
+      
+      if (adminStream) {
+        adminStream.getTracks().forEach(track => track.stop());
+        adminStream = null;
+      }
+      
+      adminPeers.forEach((peerData) => {
+        if (peerData.call) peerData.call.close();
+        if (peerData.audioElement) {
+          peerData.audioElement.pause();
+          peerData.audioElement.srcObject = null;
+        }
+      });
+      adminPeers.clear();
+      
+      isAdminInCall = false;
+      isAdminMuted = false;
+      
+      document.getElementById('adminChatView').style.display = 'flex';
+      document.getElementById('adminVoiceCallView').style.display = 'none';
+      
+      const muteBtn = document.getElementById('adminMuteBtn');
+      muteBtn.classList.remove('muted');
+      muteBtn.textContent = '🎤';
+      
+      console.log('✅ Admin salió de la llamada');
+    }
+
+    function toggleAdminMute() {
+      if (!adminStream) return;
+      
+      isAdminMuted = !isAdminMuted;
+      adminStream.getAudioTracks()[0].enabled = !isAdminMuted;
+      
+      const muteBtn = document.getElementById('adminMuteBtn');
+      if (isAdminMuted) {
+        muteBtn.classList.add('muted');
+        muteBtn.textContent = '🔇';
+      } else {
+        muteBtn.classList.remove('muted');
+        muteBtn.textContent = '🎤';
+      }
+      
+      socket.emit('mute-status', { gameId: currentGameId, playerName: adminName, isMuted: isAdminMuted });
+      updateAdminVoiceParticipants();
+    }
+
+    function updateAdminVoiceParticipants() {
+      const container = document.getElementById('adminVoiceParticipants');
+      if (!container) return;
+      
+      const allPlayers = window.adminGameData?.allPlayers || [];
+      container.innerHTML = '';
+      
+      const myParticipant = createAdminParticipantElement(adminName, true, isAdminMuted, false);
+      container.appendChild(myParticipant);
+      
+      allPlayers.forEach(player => {
+        if (player.name !== adminName) {
+          const participant = createAdminParticipantElement(player.name, false, false, false);
+          container.appendChild(participant);
+        }
+      });
+    }
+
+    function createAdminParticipantElement(name, isMe, muted, speaking) {
+      const div = document.createElement('div');
+      div.className = 'voice-participant';
+      div.dataset.participantName = name;
+      if (speaking) div.classList.add('speaking');
+      if (muted) div.classList.add('muted');
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'participant-avatar';
+      avatar.textContent = name.charAt(0).toUpperCase();
+      
+      const info = document.createElement('div');
+      info.className = 'participant-info';
+      
+      const nameEl = document.createElement('div');
+      nameEl.className = 'participant-name';
+      nameEl.textContent = name + (isMe ? ' (Tú)' : '');
+      
+      const status = document.createElement('div');
+      status.className = 'participant-status';
+      
+      if (muted) {
+        status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
+      } else if (speaking) {
+        status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+      } else {
+        status.innerHTML = '🎤 En llamada';
+      }
+      
+      info.appendChild(nameEl);
+      info.appendChild(status);
+      div.appendChild(avatar);
+      div.appendChild(info);
+      
+      return div;
+    }
+
+    function updateAdminParticipantSpeaking(peerId, isSpeaking) {
+      if (peerId === `${currentGameId}-${socket.id}`) {
+        const myParticipant = document.querySelector(`.voice-participant[data-participant-name="${adminName}"]`);
+        if (myParticipant) {
+          if (isSpeaking) {
+            myParticipant.classList.add('speaking');
+            const status = myParticipant.querySelector('.participant-status');
+            status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+          } else {
+            myParticipant.classList.remove('speaking');
+            const status = myParticipant.querySelector('.participant-status');
+            if (isAdminMuted) {
+              status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
+            } else {
+              status.innerHTML = '🎤 En llamada';
+            }
+          }
+        }
+      }
+    }
+
+    socket.on('peers-list', (data) => {
+      console.log('📋 Admin recibió lista de peers:', data.peers);
+      
+      data.peers.forEach(peerInfo => {
+        if (peerInfo.peerId !== `${currentGameId}-${socket.id}` && !adminPeers.has(peerInfo.peerId)) {
+          console.log('📞 Admin llamando a:', peerInfo.playerName);
+          const call = adminPeer.call(peerInfo.peerId, adminStream);
+          setupAdminCall(call);
+        }
+      });
+      
+      updateAdminVoiceParticipants();
+    });
+
+    socket.on('new-peer', (data) => {
+      console.log('👤 Nuevo peer para admin:', data.playerName);
+      
+      if (isAdminInCall && adminStream && data.peerId !== `${currentGameId}-${socket.id}`) {
+        setTimeout(() => {
+          const call = adminPeer.call(data.peerId, adminStream);
+          setupAdminCall(call);
+        }, 500);
+      }
+    });
+
+    socket.on('peer-left', (data) => {
+      const peerData = adminPeers.get(data.peerId);
+      if (peerData) {
+        if (peerData.call) peerData.call.close();
+        if (peerData.audioElement) {
+          peerData.audioElement.pause();
+          peerData.audioElement.srcObject = null;
+        }
+        adminPeers.delete(data.peerId);
+      }
+      updateAdminVoiceParticipants();
+    });
+
   </script>
 </body>
 </html>
