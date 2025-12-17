@@ -1921,13 +1921,16 @@
     });
 
     // Inicializar peer cuando el juego empiece
-    socket.on('game-started', (data) => {
+    socket.on('game-started', async (data) => {
       // ... código existente de game-started ...
       
-      // Inicializar sistema de voz
-      setTimeout(() => {
-        initializePeer();
-      }, 1000);
+      // Inicializar sistema de voz inmediatamente
+      try {
+        await initializePeer();
+        console.log('✅ Sistema de voz listo');
+      } catch (error) {
+        console.error('❌ Error inicializando voz:', error);
+      }
     });
 
     // Generar partículas flotantes
