@@ -4,7 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Impostor - Panel de Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --neon-pink: #FF006E;
+      --neon-cyan: #00F5FF;
+      --neon-purple: #A855F7;
+      --neon-yellow: #FFD60A;
+      --neon-green: #00FF88;
+      --dark-bg: #0A0A0F;
+      --dark-surface: #1A1A24;
+      --dark-elevated: #242435;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A1A1AA;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -12,92 +28,171 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Poppins', sans-serif;
+      background: var(--dark-bg);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: linear-gradient(135deg, #0A0A0F 0%, #1A1A24 50%, #0A0A0F 100%);
+      background-size: 400% 400%;
+      animation: bgMove 15s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: var(--neon-purple);
+      border-radius: 50%;
+      opacity: 0.5;
+      animation: float linear infinite;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100vh) scale(1);
+        opacity: 0;
+      }
     }
 
     .container {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+      background: rgba(26, 26, 36, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      padding: 45px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
       max-width: 1200px;
       width: 100%;
     }
 
     h1 {
       text-align: center;
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 2.5em;
+      font-size: 3em;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
     }
 
     .subtitle {
       text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 1.1em;
+      color: var(--text-secondary);
+      margin-bottom: 35px;
+      font-size: 1.2em;
+      font-weight: 500;
     }
 
     .form-group {
-      margin-bottom: 25px;
+      margin-bottom: 28px;
     }
 
     label {
       display: block;
-      margin-bottom: 8px;
-      color: #333;
+      margin-bottom: 10px;
+      color: var(--text-primary);
       font-weight: 600;
-      font-size: 1.1em;
+      font-size: 1.05em;
     }
 
     input[type="number"],
     input[type="text"] {
       width: 100%;
-      padding: 12px;
-      border: 2px solid #ddd;
-      border-radius: 10px;
+      padding: 15px 18px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
       font-size: 1.1em;
-      transition: border-color 0.3s;
+      background: rgba(36, 36, 53, 0.6);
+      color: var(--text-primary);
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
     }
 
     input[type="number"]:focus,
     input[type="text"]:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: var(--neon-purple);
+      background: rgba(36, 36, 53, 0.9);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+
+    input[type="number"]::placeholder,
+    input[type="text"]::placeholder {
+      color: var(--text-secondary);
     }
 
     .btn {
       width: 100%;
-      padding: 15px;
+      padding: 16px;
       border: none;
-      border-radius: 10px;
-      font-size: 1.2em;
-      font-weight: 600;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      font-family: 'Poppins', sans-serif;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+      color: var(--text-primary);
+      box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
     }
 
     .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(168, 85, 247, 0.6);
     }
 
     .btn-secondary {
-      background: #6c757d;
-      color: white;
+      background: rgba(108, 117, 125, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-secondary);
+    }
       margin-top: 10px;
     }
 
@@ -124,11 +219,12 @@
 
     .game-link-container {
       display: none;
-      margin-top: 30px;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border: 2px dashed #667eea;
+      margin-top: 35px;
+      padding: 25px;
+      background: rgba(168, 85, 247, 0.1);
+      border-radius: 20px;
+      border: 2px dashed rgba(168, 85, 247, 0.4);
+      backdrop-filter: blur(10px);
     }
 
     .game-link-container.active {
@@ -136,14 +232,15 @@
     }
 
     .game-link {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
+      background: rgba(36, 36, 53, 0.8);
+      padding: 18px;
+      border-radius: 12px;
+      margin: 18px 0;
       word-break: break-all;
-      font-family: monospace;
+      font-family: 'Monaco', 'Courier New', monospace;
       font-size: 0.95em;
-      border: 1px solid #ddd;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--neon-cyan);
     }
 
     .qr-container {
@@ -152,65 +249,84 @@
     }
 
     .players-list {
-      margin: 20px 0;
+      margin: 25px 0;
     }
 
     .player-item {
-      background: white;
-      padding: 10px 15px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ddd;
+      background: rgba(36, 36, 53, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 14px 18px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
+      color: var(--text-primary);
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .player-item:hover {
+      border-color: var(--neon-purple);
+      background: rgba(36, 36, 53, 0.9);
+      transform: translateX(5px);
     }
 
     .player-item::before {
       content: "👤";
-      margin-right: 10px;
-      font-size: 1.2em;
+      margin-right: 12px;
+      font-size: 1.3em;
     }
 
     .player-count {
       text-align: center;
-      font-size: 1.3em;
-      font-weight: 600;
-      color: #667eea;
-      margin: 15px 0;
+      font-size: 1.4em;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 18px 0;
     }
 
     .alert {
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
       text-align: center;
+      font-weight: 600;
+      border: 1px solid;
     }
 
     .alert-success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--neon-green);
+      border-color: rgba(0, 255, 136, 0.3);
     }
 
     .alert-danger {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background: rgba(255, 0, 110, 0.1);
+      color: var(--neon-pink);
+      border-color: rgba(255, 0, 110, 0.3);
     }
 
     .copy-btn {
-      background: #667eea;
-      color: white;
-      padding: 8px 15px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+      color: var(--text-primary);
+      padding: 10px 20px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 0.9em;
-      margin-top: 10px;
+      font-size: 0.95em;
+      margin-top: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(0, 245, 255, 0.3);
     }
 
     .copy-btn:hover {
-      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 245, 255, 0.5);
     }
     
     @keyframes blink {
@@ -220,89 +336,104 @@
 
     /* Estilos para la interfaz de llamada de voz */
     .voice-call-container {
-      background: white;
-      border-radius: 10px;
+      background: rgba(36, 36, 53, 0.6);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       height: 100%;
     }
 
     .voice-call-header {
-      color: #333;
-      padding: 15px;
-      border-bottom: 2px solid #e9ecef;
+      color: var(--text-primary);
+      padding: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       margin: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: rgba(26, 26, 36, 0.4);
+      font-weight: 700;
     }
 
     .voice-toggle-btn {
-      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--neon-green), #00D9FF);
+      color: #0A0A0F;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.95em;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      font-family: 'Poppins', sans-serif;
+      box-shadow: 0 6px 20px rgba(0, 255, 136, 0.3);
     }
 
     .voice-toggle-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 255, 136, 0.5);
     }
 
     .voice-toggle-btn.in-call {
-      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      background: linear-gradient(135deg, var(--neon-pink), #FF4444);
+      box-shadow: 0 6px 20px rgba(255, 0, 110, 0.3);
+    }
+
+    .voice-toggle-btn.in-call:hover {
+      box-shadow: 0 10px 30px rgba(255, 0, 110, 0.5);
     }
 
     .voice-participants {
       flex: 1;
       overflow-y: auto;
-      padding: 15px;
-      background: #f8f9fa;
+      padding: 18px;
+      background: rgba(26, 26, 36, 0.3);
     }
 
     .voice-participant {
-      background: white;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 12px;
+      background: rgba(36, 36, 53, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      transition: all 0.3s;
-      border: 3px solid transparent;
+      gap: 14px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     .voice-participant.speaking {
-      border-color: #28a745;
-      box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
-      transform: scale(1.02);
+      border-color: var(--neon-green);
+      box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+      transform: scale(1.03);
+      background: rgba(36, 36, 53, 1);
     }
 
     .voice-participant.muted {
-      opacity: 0.7;
+      opacity: 0.6;
     }
 
     .participant-avatar {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.5em;
-      color: white;
+      color: var(--text-primary);
       flex-shrink: 0;
+      box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    }
     }
 
     .participant-info {
@@ -367,32 +498,77 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #28a745;
+      background: var(--neon-green);
       animation: pulse-dot 1.5s infinite;
+      box-shadow: 0 0 10px var(--neon-green);
     }
 
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.2); }
+      50% { opacity: 0.4; transform: scale(1.3); }
     }
 
     .muted-indicator {
-      color: #dc3545;
+      color: var(--neon-pink);
     }
 
-    @media (max-width: 600px) {
+    /* Responsive */
+    @media (max-width: 768px) {
       .container {
-        padding: 25px;
+        padding: 30px 25px;
         max-width: 100%;
       }
 
       h1 {
-        font-size: 2em;
+        font-size: 2.2em;
       }
+
+      .subtitle {
+        font-size: 1em;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 25px 20px;
+      }
+
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .btn {
+        font-size: 1em;
+        padding: 14px;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--dark-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan));
     }
   </style>
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="bg-animation"></div>
+  
+  <!-- Floating Particles -->
+  <div class="particles" id="particles"></div>
+
   <div class="container">
     <h1>🎭 El Impostor</h1>
     <p class="subtitle">Panel de Administración</p>
@@ -1409,6 +1585,28 @@
       }
       updateAdminVoiceParticipants();
     });
+
+    // Generar partículas flotantes
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 15;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.animationDuration = `${Math.random() * 10 + 15}s`;
+        particle.style.animationDelay = `${Math.random() * 5}s`;
+        
+        // Color aleatorio entre purple, pink y cyan
+        const colors = ['#A855F7', '#FF006E', '#00F5FF'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    createParticles();
 
   </script>
 </body>
