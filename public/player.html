@@ -4,7 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Impostor - Jugador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --neon-pink: #FF006E;
+      --neon-cyan: #00F5FF;
+      --neon-purple: #A855F7;
+      --neon-yellow: #FFD60A;
+      --neon-green: #00FF88;
+      --dark-bg: #0A0A0F;
+      --dark-surface: #1A1A24;
+      --dark-elevated: #242435;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A1A1AA;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -12,13 +28,33 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Poppins', sans-serif;
+      background: var(--dark-bg);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: linear-gradient(135deg, #0A0A0F 0%, #1A1A24 50%, #0A0A0F 100%);
+      background-size: 400% 400%;
+      animation: bgMove 15s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
 
     .container {
