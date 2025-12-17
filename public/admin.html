@@ -349,9 +349,6 @@
       try {
         console.log('🎮 Uniéndose a partida:', currentGameId, 'como:', adminName);
         
-        document.getElementById('setupForm').style.display = 'none';
-        document.getElementById('gameLinkContainer').classList.add('active');
-        
         // Preparar datos de unión
         const joinData = { 
           gameId: currentGameId, 
@@ -364,11 +361,30 @@
           console.log('🔐 Incluyendo código:', currentGameCode);
         }
         
+        // Configurar listeners de una sola vez para esta unión
+        const joinSuccessHandler = () => {
+          console.log('✅ Unión exitosa');
+          document.getElementById('setupForm').style.display = 'none';
+          document.getElementById('gameLinkContainer').classList.add('active');
+          showAlert('¡Te has unido a la partida!', 'success');
+          socket.off('joined-successfully', joinSuccessHandler);
+          socket.off('error', joinErrorHandler);
+        };
+        
+        const joinErrorHandler = (data) => {
+          console.error('❌ Error al unirse:', data.message);
+          showAlert(data.message || 'Error al unirse a la partida', 'danger');
+          socket.off('joined-successfully', joinSuccessHandler);
+          socket.off('error', joinErrorHandler);
+        };
+        
+        socket.once('joined-successfully', joinSuccessHandler);
+        socket.once('error', joinErrorHandler);
+        
         // Unirse como admin/jugador
         socket.emit('join-as-admin', { gameId: currentGameId });
         socket.emit('join-game', joinData);
         
-        showAlert('¡Te has unido a la partida!', 'success');
       } catch (error) {
         console.error('❌ Error al unirse:', error);
         showAlert('Error al unirse a la partida', 'danger');
