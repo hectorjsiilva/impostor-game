@@ -954,12 +954,13 @@
         </div>
         
         <!-- Pantalla de revelación inicial -->
-        <div id="adminRevealScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
-          <div style="background: white; padding: 50px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; max-width: 600px;">
-            <h2 style="color: #333; font-size: 2em; margin-bottom: 30px;">Tu palabra es:</h2>
-            <div id="adminRevealWord" style="font-size: 4em; font-weight: 800; padding: 40px; border-radius: 20px; margin: 20px 0; animation: pulse 2s infinite;"></div>
-            <p style="color: #666; font-size: 1.2em;">Memorízala...</p>
-            <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="adminRevealTimer">10</div>
+        <div id="adminRevealScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--dark-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; animation: fadeIn 0.5s ease;">
+          <div style="background: rgba(26, 26, 36, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 60px 50px; border-radius: 30px; box-shadow: 0 30px 80px rgba(0,0,0,0.5); text-align: center; max-width: 650px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1), transparent 70%); pointer-events: none;"></div>
+            <h2 style="position: relative; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2.2em; margin-bottom: 35px; font-weight: 900; letter-spacing: 1px;">¡Tu palabra es!</h2>
+            <div id="adminRevealWord" style="position: relative; font-size: 4.5em; font-weight: 900; padding: 45px; border-radius: 25px; margin: 25px 0; border: 3px solid; overflow: hidden;"></div>
+            <p style="position: relative; color: var(--text-secondary); font-size: 1.3em; font-weight: 600; margin-top: 25px;">💭 Memorízala bien...</p>
+            <div style="position: relative; margin-top: 35px; font-size: 2.5em; font-weight: 900; background: linear-gradient(135deg, var(--neon-yellow), var(--neon-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: pulse 1.5s ease-in-out infinite;" id="adminRevealTimer">10</div>
           </div>
         </div>
         
@@ -1064,12 +1065,20 @@
       const revealWordEl = document.getElementById('adminRevealWord');
       if (data.role === 'impostor') {
         revealWordEl.textContent = '🎭 IMPOSTOR';
-        revealWordEl.style.background = 'linear-gradient(135deg, #ff6b6b, #c92a2a)';
-        revealWordEl.style.color = 'white';
+        revealWordEl.style.background = 'linear-gradient(135deg, rgba(255, 0, 110, 0.3), rgba(255, 0, 110, 0.1))';
+        revealWordEl.style.color = 'var(--neon-pink)';
+        revealWordEl.style.borderColor = 'var(--neon-pink)';
+        revealWordEl.style.boxShadow = '0 20px 60px rgba(255, 0, 110, 0.6), inset 0 0 60px rgba(255, 0, 110, 0.15)';
+        revealWordEl.style.textShadow = '0 0 40px rgba(255, 0, 110, 1), 0 0 80px rgba(255, 0, 110, 0.5)';
+        revealWordEl.style.animation = 'revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), floatWord 3s ease-in-out infinite 1.2s';
       } else {
         revealWordEl.textContent = data.word;
-        revealWordEl.style.background = 'linear-gradient(135deg, #51cf66, #2f9e44)';
-        revealWordEl.style.color = 'white';
+        revealWordEl.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.1))';
+        revealWordEl.style.color = 'var(--neon-green)';
+        revealWordEl.style.borderColor = 'var(--neon-green)';
+        revealWordEl.style.boxShadow = '0 20px 60px rgba(0, 255, 136, 0.6), inset 0 0 60px rgba(0, 255, 136, 0.15)';
+        revealWordEl.style.textShadow = '0 0 40px rgba(0, 255, 136, 1), 0 0 80px rgba(0, 255, 136, 0.5)';
+        revealWordEl.style.animation = 'revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), floatWord 3s ease-in-out infinite 1.2s';
       }
       
       // Iniciar cuenta regresiva de revelación (10 segundos)
