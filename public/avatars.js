@@ -72,17 +72,20 @@ function createAvatarElement(avatarId, size = 'medium', showBorder = true) {
     xlarge: '120px'
   };
   
+  // Si size es un número, usarlo directamente
+  const finalSize = typeof size === 'number' ? `${size}px` : (sizes[size] || sizes.medium);
+  
   const div = document.createElement('div');
   div.className = 'avatar-container';
   div.style.cssText = `
-    width: ${sizes[size]};
-    height: ${sizes[size]};
+    width: ${finalSize};
+    height: ${finalSize};
     border-radius: 50%;
     background: ${avatar.gradient};
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: calc(${sizes[size]} * 0.5);
+    font-size: calc(${finalSize} * 0.5);
     ${showBorder ? 'border: 3px solid rgba(255,255,255,0.3);' : ''}
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -131,9 +134,12 @@ function createAvatarSelector(onSelect) {
   
   Object.keys(AVATARS).forEach(avatarId => {
     const avatarEl = createAvatarElement(avatarId, 'medium', true);
+    avatarEl.dataset.avatar = avatarId; // Agregar data-avatar
+    avatarEl.classList.add('avatar-option'); // Agregar clase para selección
+    
     avatarEl.onclick = () => {
       // Marcar como seleccionado
-      container.querySelectorAll('.avatar-container').forEach(el => {
+      container.querySelectorAll('.avatar-option').forEach(el => {
         el.style.border = '3px solid rgba(255,255,255,0.3)';
         el.classList.remove('selected');
       });
@@ -154,6 +160,14 @@ function createAvatarSelector(onSelect) {
     
     container.appendChild(wrapper);
   });
+  
+  // Seleccionar el primer avatar por defecto
+  setTimeout(() => {
+    const firstAvatar = container.querySelector('.avatar-option');
+    if (firstAvatar) {
+      firstAvatar.click();
+    }
+  }, 100);
   
   return container;
 }
