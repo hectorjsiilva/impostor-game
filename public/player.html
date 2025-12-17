@@ -1578,20 +1578,35 @@
       call.on('stream', (remoteStream) => {
         console.log('🔊 Stream recibido de:', call.peer);
         
-        // Crear elemento de audio para reproducir
-        const audio = new Audio();
+        // Crear elemento de audio para reproducir - AÑADIRLO AL DOM
+        const audio = document.createElement('audio');
         audio.srcObject = remoteStream;
         audio.autoplay = true;
+        audio.playsinline = true;
         audio.volume = 1.0;
+        audio.muted = false;
+        
+        // Añadir al documento (necesario para algunos navegadores)
+        audio.style.display = 'none';
+        document.body.appendChild(audio);
         
         // IMPORTANTE: Reproducir el audio
-        audio.play().then(() => {
-          console.log('✅ Audio reproduciéndose de:', call.peer);
-        }).catch(e => {
-          console.error('❌ Error al reproducir audio:', e);
-          // Intentar de nuevo después de una interacción del usuario
-          document.addEventListener('click', () => audio.play(), { once: true });
-        });
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('✅ Audio reproduciéndose de:', call.peer);
+          }).catch(e => {
+            console.error('❌ Error al reproducir audio:', e);
+            // Intentar de nuevo después de una interacción del usuario
+            const retryPlay = () => {
+              audio.play().then(() => {
+                console.log('✅ Audio reproduciéndose (retry):', call.peer);
+              });
+            };
+            document.addEventListener('click', retryPlay, { once: true });
+            document.addEventListener('touchstart', retryPlay, { once: true });
+          });
+        }
         
         // Configurar análisis de audio para detectar cuando habla
         if (!audioContext) {
@@ -1620,6 +1635,10 @@
         if (peerData && peerData.audioElement) {
           peerData.audioElement.pause();
           peerData.audioElement.srcObject = null;
+          // Remover del DOM
+          if (peerData.audioElement.parentNode) {
+            peerData.audioElement.parentNode.removeChild(peerData.audioElement);
+          }
         }
         peers.delete(call.peer);
         updateVoiceParticipants();
