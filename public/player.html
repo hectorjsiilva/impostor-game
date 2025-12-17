@@ -733,9 +733,29 @@
         </div>
         
         <!-- Panel derecho: Chat / Llamada de Voz -->
-        <div>
-          <!-- Vista de Chat (por defecto) -->
-          <div id="chatView" style="background: white; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          <!-- Panel de Voz (oculto por defecto, se muestra arriba cuando está activo) -->
+          <div id="voiceCallPanel" style="display: none; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div class="voice-call-header">
+              <h3 style="margin: 0;">🎤 Llamada de Voz</h3>
+              <button class="voice-toggle-btn in-call" onclick="toggleVoiceCall()" id="voiceExitBtn">
+                📞 Salir de la Llamada
+              </button>
+            </div>
+            <div class="voice-participants" id="voiceParticipants" style="max-height: 250px; overflow-y: auto;">
+              <div style="text-align: center; color: #666; padding: 20px;">
+                Conectándote a la llamada...
+              </div>
+            </div>
+            <div class="voice-controls">
+              <button class="voice-control-btn mute-btn" onclick="toggleMute()" id="muteBtn" title="Silenciar/Activar micrófono">
+                🎤
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel de Chat (siempre visible) -->
+          <div id="chatPanel" style="background: white; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 2px solid #e9ecef;">
               <h3 style="color: #333; margin: 0;">💬 Chat</h3>
               <button class="voice-toggle-btn" onclick="toggleVoiceCall()" id="voiceToggleBtn">
@@ -750,26 +770,6 @@
                      placeholder="Escribe un mensaje..." 
                      onkeypress="if(event.key==='Enter') sendMessage()">
               <button class="send-btn" onclick="sendMessage()">Enviar</button>
-            </div>
-          </div>
-
-          <!-- Vista de Llamada de Voz (oculta por defecto) -->
-          <div id="voiceCallView" class="voice-call-container" style="display: none;">
-            <div class="voice-call-header">
-              <h3 style="margin: 0;">🎤 Llamada de Voz</h3>
-              <button class="voice-toggle-btn in-call" onclick="toggleVoiceCall()" id="voiceExitBtn">
-                📞 Salir de la Llamada
-              </button>
-            </div>
-            <div class="voice-participants" id="voiceParticipants">
-              <div style="text-align: center; color: #666; padding: 20px;">
-                Conectándote a la llamada...
-              </div>
-            </div>
-            <div class="voice-controls">
-              <button class="voice-control-btn mute-btn" onclick="toggleMute()" id="muteBtn" title="Silenciar/Activar micrófono">
-                🎤
-              </button>
             </div>
           </div>
         </div>
@@ -1413,9 +1413,9 @@
         
         isInCall = true;
         
-        // Cambiar UI
-        document.getElementById('chatView').style.display = 'none';
-        document.getElementById('voiceCallView').style.display = 'flex';
+        // Cambiar UI - Mostrar panel de voz, mantener chat visible
+        document.getElementById('voiceCallPanel').style.display = 'block';
+        document.getElementById('voiceToggleBtn').style.display = 'none';
         
         // Solicitar lista de peers activos
         socket.emit('request-peers', { gameId });
@@ -1455,9 +1455,9 @@
       isInCall = false;
       isMuted = false;
       
-      // Cambiar UI
-      document.getElementById('chatView').style.display = 'flex';
-      document.getElementById('voiceCallView').style.display = 'none';
+      // Cambiar UI - Ocultar panel de voz, chat ya visible
+      document.getElementById('voiceCallPanel').style.display = 'none';
+      document.getElementById('voiceToggleBtn').style.display = 'inline-flex';
       
       // Actualizar botón de mute
       const muteBtn = document.getElementById('muteBtn');

@@ -794,9 +794,29 @@
           </div>
           
           <!-- Panel derecho: Chat / Llamada de Voz -->
-          <div>
-            <!-- Vista de Chat (por defecto) -->
-            <div id="adminChatView" style="background: white; border-radius: 10px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <!-- Panel de Voz (oculto por defecto, se muestra arriba cuando está activo) -->
+            <div id="adminVoiceCallPanel" style="display: none; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div class="voice-call-header">
+                <h3 style="margin: 0;">🎤 Llamada de Voz</h3>
+                <button class="voice-toggle-btn in-call" onclick="toggleAdminVoiceCall()" id="adminVoiceExitBtn">
+                  📞 Salir de la Llamada
+                </button>
+              </div>
+              <div class="voice-participants" id="adminVoiceParticipants" style="max-height: 250px; overflow-y: auto;">
+                <div style="text-align: center; color: #666; padding: 20px;">
+                  Conectándote a la llamada...
+                </div>
+              </div>
+              <div class="voice-controls">
+                <button class="voice-control-btn mute-btn" onclick="toggleAdminMute()" id="adminMuteBtn" title="Silenciar/Activar micrófono">
+                  🎤
+                </button>
+              </div>
+            </div>
+
+            <!-- Panel de Chat (siempre visible) -->
+            <div id="adminChatPanel" style="background: white; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 2px solid #e9ecef;">
                 <h3 style="color: #333; margin: 0;">💬 Chat</h3>
                 <button class="voice-toggle-btn" onclick="toggleAdminVoiceCall()" id="adminVoiceToggleBtn">
@@ -807,26 +827,6 @@
               <div style="display: flex; padding: 15px; background: white; border-top: 2px solid #e9ecef;">
                 <input type="text" id="adminChatInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1em;" onkeypress="if(event.key==='Enter') sendAdminMessage()">
                 <button onclick="sendAdminMessage()" style="margin-left: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Enviar</button>
-              </div>
-            </div>
-
-            <!-- Vista de Llamada de Voz (oculta por defecto) -->
-            <div id="adminVoiceCallView" class="voice-call-container" style="display: none;">
-              <div class="voice-call-header">
-                <h3 style="margin: 0;">🎤 Llamada de Voz</h3>
-                <button class="voice-toggle-btn in-call" onclick="toggleAdminVoiceCall()" id="adminVoiceExitBtn">
-                  📞 Salir de la Llamada
-                </button>
-              </div>
-              <div class="voice-participants" id="adminVoiceParticipants">
-                <div style="text-align: center; color: #666; padding: 20px;">
-                  Conectándote a la llamada...
-                </div>
-              </div>
-              <div class="voice-controls">
-                <button class="voice-control-btn mute-btn" onclick="toggleAdminMute()" id="adminMuteBtn" title="Silenciar/Activar micrófono">
-                  🎤
-                </button>
               </div>
             </div>
           </div>
@@ -1204,8 +1204,8 @@
         
         isAdminInCall = true;
         
-        document.getElementById('adminChatView').style.display = 'none';
-        document.getElementById('adminVoiceCallView').style.display = 'flex';
+        document.getElementById('adminVoiceCallPanel').style.display = 'block';
+        document.getElementById('adminVoiceToggleBtn').style.display = 'none';
         
         socket.emit('request-peers', { gameId: currentGameId });
         detectAdminMyVoice();
@@ -1237,8 +1237,8 @@
       isAdminInCall = false;
       isAdminMuted = false;
       
-      document.getElementById('adminChatView').style.display = 'flex';
-      document.getElementById('adminVoiceCallView').style.display = 'none';
+      document.getElementById('adminVoiceCallPanel').style.display = 'none';
+      document.getElementById('adminVoiceToggleBtn').style.display = 'inline-flex';
       
       const muteBtn = document.getElementById('adminMuteBtn');
       muteBtn.classList.remove('muted');
