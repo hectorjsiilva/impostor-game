@@ -1581,7 +1581,17 @@
         // Crear elemento de audio para reproducir
         const audio = new Audio();
         audio.srcObject = remoteStream;
-        audio.play().catch(e => console.error('Error al reproducir audio:', e));
+        audio.autoplay = true;
+        audio.volume = 1.0;
+        
+        // IMPORTANTE: Reproducir el audio
+        audio.play().then(() => {
+          console.log('✅ Audio reproduciéndose de:', call.peer);
+        }).catch(e => {
+          console.error('❌ Error al reproducir audio:', e);
+          // Intentar de nuevo después de una interacción del usuario
+          document.addEventListener('click', () => audio.play(), { once: true });
+        });
         
         // Configurar análisis de audio para detectar cuando habla
         if (!audioContext) {

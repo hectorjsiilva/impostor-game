@@ -793,6 +793,71 @@
       background: linear-gradient(135deg, var(--neon-pink), #FF4444);
       box-shadow: 0 6px 20px rgba(255, 0, 110, 0.3);
     }
+
+    /* Clases del chat */
+    .chat-messages {
+      height: 400px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 18px;
+      background: rgba(26, 26, 36, 0.4);
+    }
+
+    .chat-message {
+      margin: 10px 0;
+      padding: 12px 16px;
+      background: rgba(36, 36, 53, 0.8);
+      border-radius: 12px;
+      border-left: 3px solid var(--neon-cyan);
+      color: var(--text-secondary);
+    }
+
+    .chat-message strong {
+      color: var(--neon-cyan);
+      font-weight: 700;
+    }
+
+    .chat-input-container {
+      display: flex;
+      padding: 18px;
+      background: rgba(36, 36, 53, 0.8);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      font-size: 1em;
+      background: rgba(26, 26, 36, 0.6);
+      color: var(--text-primary);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
+    }
+
+    .send-btn {
+      margin-left: 12px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+      color: var(--text-primary);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 245, 255, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -1270,10 +1335,14 @@
                   🎤 Entrar en Llamada
                 </button>
               </div>
-              <div id="adminChatMessages" style="flex: 1; overflow-y: auto; padding: 15px; background: #f8f9fa; max-height: 400px;"></div>
-              <div style="display: flex; padding: 15px; background: white; border-top: 2px solid #e9ecef;">
-                <input type="text" id="adminChatInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1em;" onkeypress="if(event.key==='Enter') sendAdminMessage()">
-                <button onclick="sendAdminMessage()" style="margin-left: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Enviar</button>
+              <div class="chat-messages" id="adminChatMessages"></div>
+              <div class="chat-input-container">
+                <input type="text" 
+                       class="chat-input" 
+                       id="adminChatInput" 
+                       placeholder="Escribe un mensaje..." 
+                       onkeypress="if(event.key==='Enter') sendAdminMessage()">
+                <button class="send-btn" onclick="sendAdminMessage()">Enviar</button>
               </div>
             </div>
           </div>
@@ -1590,7 +1659,17 @@
         
         const audio = new Audio();
         audio.srcObject = remoteStream;
-        audio.play().catch(e => console.error('Error al reproducir:', e));
+        audio.autoplay = true;
+        audio.volume = 1.0;
+        
+        // IMPORTANTE: Reproducir el audio
+        audio.play().then(() => {
+          console.log('✅ Audio reproduciéndose de:', call.peer);
+        }).catch(e => {
+          console.error('❌ Error al reproducir audio:', e);
+          // Intentar de nuevo después de una interacción del usuario
+          document.addEventListener('click', () => audio.play(), { once: true });
+        });
         
         if (!adminAudioContext) {
           adminAudioContext = new (window.AudioContext || window.webkitAudioContext)();
