@@ -271,35 +271,74 @@
       text-transform: uppercase;
       letter-spacing: 4px;
       box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
-      animation: reveal 1s ease-out;
-      border: 2px solid;
+      animation: revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      border: 3px solid;
+      position: relative;
+      overflow: hidden;
     }
 
-    @keyframes reveal {
+    .role-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes revealBounce {
       0% {
         opacity: 0;
-        transform: scale(0.7) rotateY(90deg);
+        transform: scale(0.3) rotate(-15deg);
+      }
+      50% {
+        transform: scale(1.1) rotate(5deg);
+      }
+      70% {
+        transform: scale(0.95) rotate(-3deg);
       }
       100% {
         opacity: 1;
-        transform: scale(1) rotateY(0deg);
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+      }
+      100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+      }
+    }
+
+    @keyframes floatWord {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
       }
     }
 
     .impostor {
-      background: linear-gradient(135deg, rgba(255, 0, 110, 0.2), rgba(255, 0, 110, 0.05));
+      background: linear-gradient(135deg, rgba(255, 0, 110, 0.3), rgba(255, 0, 110, 0.1));
       color: var(--neon-pink);
-      text-shadow: 0 0 30px rgba(255, 0, 110, 0.8);
+      text-shadow: 0 0 40px rgba(255, 0, 110, 1), 0 0 80px rgba(255, 0, 110, 0.5);
       border-color: var(--neon-pink);
-      box-shadow: 0 15px 50px rgba(255, 0, 110, 0.5), inset 0 0 50px rgba(255, 0, 110, 0.1);
+      box-shadow: 0 20px 60px rgba(255, 0, 110, 0.6), inset 0 0 60px rgba(255, 0, 110, 0.15);
+      animation: revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), floatWord 3s ease-in-out infinite 1.2s;
     }
 
     .inocente {
-      background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.05));
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.1));
       color: var(--neon-green);
-      text-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+      text-shadow: 0 0 40px rgba(0, 255, 136, 1), 0 0 80px rgba(0, 255, 136, 0.5);
       border-color: var(--neon-green);
-      box-shadow: 0 15px 50px rgba(0, 255, 136, 0.5), inset 0 0 50px rgba(0, 255, 136, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 255, 136, 0.6), inset 0 0 60px rgba(0, 255, 136, 0.15);
+      animation: revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), floatWord 3s ease-in-out infinite 1.2s;
     }
 
     .role-description {
@@ -899,12 +938,13 @@
     <!-- Sección de juego -->
     <div id="gameSection" class="game-section">
       <!-- Pantalla de revelación inicial -->
-      <div id="revealScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
-        <div style="background: white; padding: 50px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; max-width: 600px;">
-          <h2 style="color: #333; font-size: 2em; margin-bottom: 30px;">Tu palabra es:</h2>
-          <div id="revealWord" style="font-size: 4em; font-weight: 800; padding: 40px; border-radius: 20px; margin: 20px 0; animation: pulse 2s infinite;"></div>
-          <p style="color: #666; font-size: 1.2em;">Memorízala...</p>
-          <div style="margin-top: 30px; font-size: 1.5em; color: #667eea; font-weight: 700;" id="revealTimer">10</div>
+      <div id="revealScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--dark-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; animation: fadeIn 0.5s ease;">
+        <div style="background: rgba(26, 26, 36, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 60px 50px; border-radius: 30px; box-shadow: 0 30px 80px rgba(0,0,0,0.5); text-align: center; max-width: 650px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1), transparent 70%); pointer-events: none;"></div>
+          <h2 style="position: relative; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2.2em; margin-bottom: 35px; font-weight: 900; letter-spacing: 1px;">¡Tu palabra es!</h2>
+          <div id="revealWord" style="position: relative; font-size: 4.5em; font-weight: 900; padding: 45px; border-radius: 25px; margin: 25px 0; border: 3px solid; overflow: hidden;"></div>
+          <p style="position: relative; color: var(--text-secondary); font-size: 1.3em; font-weight: 600; margin-top: 25px;">💭 Memorízala bien...</p>
+          <div style="position: relative; margin-top: 35px; font-size: 2.5em; font-weight: 900; background: linear-gradient(135deg, var(--neon-yellow), var(--neon-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: pulse 1.5s ease-in-out infinite;" id="revealTimer">10</div>
         </div>
       </div>
       
@@ -1181,12 +1221,20 @@
       const revealWord = document.getElementById('revealWord');
       if (data.role === 'impostor') {
         revealWord.textContent = '🎭 IMPOSTOR';
-        revealWord.style.background = 'linear-gradient(135deg, #ff6b6b, #c92a2a)';
-        revealWord.style.color = 'white';
+        revealWord.style.background = 'linear-gradient(135deg, rgba(255, 0, 110, 0.3), rgba(255, 0, 110, 0.1))';
+        revealWord.style.color = 'var(--neon-pink)';
+        revealWord.style.borderColor = 'var(--neon-pink)';
+        revealWord.style.boxShadow = '0 20px 60px rgba(255, 0, 110, 0.6), inset 0 0 60px rgba(255, 0, 110, 0.15)';
+        revealWord.style.textShadow = '0 0 40px rgba(255, 0, 110, 1), 0 0 80px rgba(255, 0, 110, 0.5)';
+        revealWord.style.animation = 'revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), floatWord 3s ease-in-out infinite 1.2s';
       } else {
         revealWord.textContent = data.word;
-        revealWord.style.background = 'linear-gradient(135deg, #51cf66, #2f9e44)';
-        revealWord.style.color = 'white';
+        revealWord.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.1))';
+        revealWord.style.color = 'var(--neon-green)';
+        revealWord.style.borderColor = 'var(--neon-green)';
+        revealWord.style.boxShadow = '0 20px 60px rgba(0, 255, 136, 0.6), inset 0 0 60px rgba(0, 255, 136, 0.15)';
+        revealWord.style.textShadow = '0 0 40px rgba(0, 255, 136, 1), 0 0 80px rgba(0, 255, 136, 0.5)';
+        revealWord.style.animation = 'revealBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), floatWord 3s ease-in-out infinite 1.2s';
       }
       
       // Iniciar cuenta regresiva de revelación (10 segundos)
@@ -1483,41 +1531,45 @@
 
     // Inicializar PeerJS cuando el juego empiece
     function initializePeer() {
-      if (peer) return;
+      if (peer) return Promise.resolve();
       
-      const peerId = `${gameId}-${socket.id}`;
-      
-      peer = new Peer(peerId, {
-        host: window.location.hostname,
-        port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
-        path: '/peerjs',
-        secure: window.location.protocol === 'https:',
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ]
-        }
-      });
-
-      peer.on('open', (id) => {
-        console.log('🎤 Peer conectado con ID:', id);
-        // Notificar al servidor que estoy listo para llamadas
-        socket.emit('peer-ready', { gameId, peerId: id, playerName });
-      });
-
-      peer.on('call', (call) => {
-        console.log('📞 Recibiendo llamada de:', call.peer);
+      return new Promise((resolve, reject) => {
+        const peerId = `${gameId}-${socket.id}`;
         
-        // Si estoy en llamada, contestar automáticamente
-        if (isInCall && myStream) {
-          call.answer(myStream);
-          setupCall(call);
-        }
-      });
+        peer = new Peer(peerId, {
+          host: window.location.hostname,
+          port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
+          path: '/peerjs',
+          secure: window.location.protocol === 'https:',
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+          }
+        });
 
-      peer.on('error', (error) => {
-        console.error('❌ Error de Peer:', error);
+        peer.on('open', (id) => {
+          console.log('🎤 Peer conectado con ID:', id);
+          // Notificar al servidor que estoy listo para llamadas
+          socket.emit('peer-ready', { gameId, peerId: id, playerName });
+          resolve();
+        });
+
+        peer.on('call', (call) => {
+          console.log('📞 Recibiendo llamada de:', call.peer);
+          
+          // Contestar automáticamente si tengo stream
+          if (myStream) {
+            call.answer(myStream);
+            setupCall(call);
+          }
+        });
+
+        peer.on('error', (error) => {
+          console.error('❌ Error de Peer:', error);
+          reject(error);
+        });
       });
     }
 
@@ -1648,11 +1700,9 @@
         myAnalyser.fftSize = 256;
         source.connect(myAnalyser);
         
-        // Inicializar peer si no existe
+        // Inicializar peer y esperar a que se conecte
         if (!peer) {
-          initializePeer();
-          // Esperar un momento para que peer se conecte
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await initializePeer();
         }
         
         isInCall = true;
@@ -1661,7 +1711,7 @@
         document.getElementById('voiceCallPanel').style.display = 'block';
         document.getElementById('voiceToggleBtn').style.display = 'none';
         
-        // Solicitar lista de peers activos
+        // Solicitar lista de peers activos (ahora el peer ya está listo)
         socket.emit('request-peers', { gameId });
         
         // Detectar mi voz

@@ -1270,38 +1270,42 @@
     let adminMyAnalyser = null;
 
     function initializeAdminPeer() {
-      if (adminPeer) return;
+      if (adminPeer) return Promise.resolve();
       
-      const peerId = `${currentGameId}-${socket.id}`;
-      
-      adminPeer = new Peer(peerId, {
-        host: window.location.hostname,
-        port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
-        path: '/peerjs',
-        secure: window.location.protocol === 'https:',
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ]
-        }
-      });
+      return new Promise((resolve, reject) => {
+        const peerId = `${currentGameId}-${socket.id}`;
+        
+        adminPeer = new Peer(peerId, {
+          host: window.location.hostname,
+          port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
+          path: '/peerjs',
+          secure: window.location.protocol === 'https:',
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+          }
+        });
 
-      adminPeer.on('open', (id) => {
-        console.log('🎤 Admin Peer conectado:', id);
-        socket.emit('peer-ready', { gameId: currentGameId, peerId: id, playerName: adminName });
-      });
+        adminPeer.on('open', (id) => {
+          console.log('🎤 Admin Peer conectado:', id);
+          socket.emit('peer-ready', { gameId: currentGameId, peerId: id, playerName: adminName });
+          resolve();
+        });
 
-      adminPeer.on('call', (call) => {
-        console.log('📞 Admin recibiendo llamada de:', call.peer);
-        if (isAdminInCall && adminStream) {
-          call.answer(adminStream);
-          setupAdminCall(call);
-        }
-      });
+        adminPeer.on('call', (call) => {
+          console.log('📞 Admin recibiendo llamada de:', call.peer);
+          if (adminStream) {
+            call.answer(adminStream);
+            setupAdminCall(call);
+          }
+        });
 
-      adminPeer.on('error', (error) => {
-        console.error('❌ Error de Admin Peer:', error);
+        adminPeer.on('error', (error) => {
+          console.error('❌ Error de Admin Peer:', error);
+          reject(error);
+        });
       });
     }
 
@@ -1403,8 +1407,7 @@
         source.connect(adminMyAnalyser);
         
         if (!adminPeer) {
-          initializeAdminPeer();
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await initializeAdminPeer();
         }
         
         isAdminInCall = true;
