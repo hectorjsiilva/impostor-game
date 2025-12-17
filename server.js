@@ -491,8 +491,8 @@ io.on('connection', (socket) => {
   });
 
   // Unirse a una partida
-  socket.on('join-game', ({ gameId, playerName, gameCode }) => {
-    console.log(`🎮 Intento de unión - GameID: ${gameId}, Player: ${playerName}, Code: ${gameCode}`);
+  socket.on('join-game', ({ gameId, playerName, gameCode, avatar }) => {
+    console.log(`🎮 Intento de unión - GameID: ${gameId}, Player: ${playerName}, Code: ${gameCode}, Avatar: ${avatar}`);
     const game = games.get(gameId);
 
     if (!game) {
@@ -533,7 +533,8 @@ io.on('connection', (socket) => {
     const player = {
       id: socket.id,
       name: playerName,
-      role: null
+      role: null,
+      avatar: avatar || 'avatar1'
     };
 
     game.players.push(player);
@@ -549,7 +550,7 @@ io.on('connection', (socket) => {
 
     // Notificar a todos los jugadores
     const eventData = {
-      players: game.players.map(p => ({ name: p.name })),
+      players: game.players.map(p => ({ name: p.name, avatar: p.avatar })),
       currentCount: game.players.length,
       totalCount: game.totalPlayers
     };
@@ -625,7 +626,7 @@ io.on('connection', (socket) => {
         role: player.role,
         word: player.word,
         playerIndex: index,
-        allPlayers: game.players.map(p => ({ name: p.name })),
+        allPlayers: game.players.map(p => ({ name: p.name, avatar: p.avatar })),
         currentTurn: game.currentTurn,
         totalPlayers: game.players.length
       });

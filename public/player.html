@@ -655,6 +655,11 @@
         <input type="text" id="playerName" placeholder="Ingresa tu nombre" maxlength="20">
       </div>
       
+      <div class="form-group">
+        <label>Elige tu avatar:</label>
+        <div id="avatarSelector"></div>
+      </div>
+      
       <div id="codeSection" class="form-group" style="display: none;">
         <label for="gameCode">Código de la partida:</label>
         <input type="text" id="gameCode" placeholder="Ingresa el código" maxlength="4" style="text-align: center; font-size: 1.5em; font-weight: 700; letter-spacing: 2px;">
@@ -782,10 +787,12 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="/avatars.js"></script>
   <script>
     const socket = io();
     let gameId = null;
     let playerName = null;
+    let playerAvatar = null;
 
     // Obtener gameId de la URL
     const pathParts = window.location.pathname.split('/');
@@ -848,8 +855,18 @@
       }
     }
     
+    // Inicializar selector de avatar
+    function initAvatarSelector() {
+      const container = document.getElementById('avatarSelector');
+      if (container) {
+        const selector = createAvatarSelector();
+        container.appendChild(selector);
+      }
+    }
+    
     // Ejecutar al cargar
     (async () => {
+      initAvatarSelector();
       const isAdmin = await checkAdminAutoJoin();
       if (!isAdmin) {
         await checkGamePrivacy();
@@ -881,6 +898,10 @@
         return;
       }
       
+      // Obtener avatar seleccionado
+      const selectedAvatar = document.querySelector('.avatar-option.selected')?.dataset.avatar || 'avatar1';
+      playerAvatar = selectedAvatar;
+      
       // Verificar código si es necesario
       const codeInput = document.getElementById('gameCode');
       const gameCode = codeInput.value.trim();
@@ -890,8 +911,8 @@
         return;
       }
 
-      // Emitir evento para unirse
-      socket.emit('join-game', { gameId, playerName, gameCode: gameCode || null });
+      // Emitir evento para unirse con avatar
+      socket.emit('join-game', { gameId, playerName, gameCode: gameCode || null, avatar: selectedAvatar });
     }
 
     // Eventos del socket
@@ -999,11 +1020,21 @@
       players.forEach(player => {
         const card = document.createElement('div');
         card.className = 'player-card';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.alignItems = 'center';
+        card.style.gap = '10px';
+        
+        // Crear avatar
+        const avatarContainer = document.createElement('div');
+        const avatarElement = createAvatarElement(player.avatar || 'avatar1', 60);
+        avatarContainer.appendChild(avatarElement);
         
         const name = document.createElement('div');
         name.className = 'player-name';
         name.textContent = player.name;
         
+        card.appendChild(avatarContainer);
         card.appendChild(name);
         grid.appendChild(card);
       });
@@ -1499,29 +1530,30 @@
       container.innerHTML = '';
       
       // Agregar mi propio participante primero
-      const myParticipant = createParticipantElement(playerName, true, isMuted, false);
+      const myParticipant = createParticipantElement(playerName, playerAvatar, true, isMuted, false);
       container.appendChild(myParticipant);
       
       // Agregar otros jugadores
       allPlayers.forEach(player => {
         if (player.name !== playerName) {
-          const participant = createParticipantElement(player.name, false, false, false);
+          const participant = createParticipantElement(player.name, player.avatar, false, false, false);
           container.appendChild(participant);
         }
       });
     }
 
     // Crear elemento visual de participante
-    function createParticipantElement(name, isMe, muted, speaking) {
+    function createParticipantElement(name, avatar, isMe, muted, speaking) {
       const div = document.createElement('div');
       div.className = 'voice-participant';
       div.dataset.participantName = name;
       if (speaking) div.classList.add('speaking');
       if (muted) div.classList.add('muted');
       
-      const avatar = document.createElement('div');
-      avatar.className = 'participant-avatar';
-      avatar.textContent = name.charAt(0).toUpperCase();
+      const avatarContainer = document.createElement('div');
+      avatarContainer.className = 'participant-avatar';
+      const avatarElement = createAvatarElement(avatar || 'avatar1', 40);
+      avatarContainer.appendChild(avatarElement);
       
       const info = document.createElement('div');
       info.className = 'participant-info';
@@ -1543,7 +1575,7 @@
       
       info.appendChild(nameEl);
       info.appendChild(status);
-      div.appendChild(avatar);
+      div.appendChild(avatarContainer);
       div.appendChild(info);
       
       return div;

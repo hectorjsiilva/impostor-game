@@ -441,6 +441,7 @@
   <div class="header">
     <h1>🎭 EL IMPOSTOR</h1>
     <div class="user-info">
+      <div id="userAvatar" style="width: 50px; height: 50px;"></div>
       <span class="user-name" id="userName">Cargando...</span>
       <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
     </div>
@@ -555,6 +556,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/avatars.js"></script>
   <script>
     const socket = io();
     let currentUser = null;
@@ -571,7 +573,13 @@
         const data = await response.json();
         currentUser = data;
         
-        document.getElementById('userName').textContent = `👤 ${data.username}`;
+        // Mostrar avatar
+        const avatarContainer = document.getElementById('userAvatar');
+        const avatarElement = createAvatarElement(data.avatar || 'avatar1', 50);
+        avatarContainer.innerHTML = '';
+        avatarContainer.appendChild(avatarElement);
+        
+        document.getElementById('userName').textContent = data.username;
         document.getElementById('gamesPlayed').textContent = data.games_played;
         document.getElementById('gamesWon').textContent = data.games_won;
         document.getElementById('timesImpostor').textContent = data.times_impostor;

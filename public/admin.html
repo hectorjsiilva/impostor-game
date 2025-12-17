@@ -439,12 +439,14 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="/avatars.js"></script>
   <script>
     const socket = io();
     let currentGameId = null;
     let currentGameLink = null;
     let currentGameCode = null; // Código de partida privada
     let adminName = null; // Variable global para el nombre del admin
+    let adminAvatar = null; // Avatar del admin
 
     // Obtener gameId de la URL
     function getGameIdFromUrl() {
@@ -516,12 +518,26 @@
       }
 
       try {
-        console.log('🎮 Uniéndose a partida:', currentGameId, 'como:', adminName);
+        // Obtener avatar del usuario autenticado si existe
+        try {
+          const profileResponse = await fetch('/api/user/profile');
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            adminAvatar = profileData.avatar || 'avatar1';
+          } else {
+            adminAvatar = 'avatar1';
+          }
+        } catch (e) {
+          adminAvatar = 'avatar1';
+        }
+        
+        console.log('🎮 Uniéndose a partida:', currentGameId, 'como:', adminName, 'avatar:', adminAvatar);
         
         // Preparar datos de unión
         const joinData = { 
           gameId: currentGameId, 
-          playerName: adminName 
+          playerName: adminName,
+          avatar: adminAvatar
         };
         
         // Si hay código de partida privada, incluirlo
@@ -711,7 +727,20 @@
       players.forEach(player => {
         const playerItem = document.createElement('div');
         playerItem.className = 'player-item';
-        playerItem.textContent = player.name;
+        playerItem.style.display = 'flex';
+        playerItem.style.alignItems = 'center';
+        playerItem.style.gap = '12px';
+        
+        // Crear avatar
+        const avatarContainer = document.createElement('div');
+        const avatarElement = createAvatarElement(player.avatar || 'avatar1', 40);
+        avatarContainer.appendChild(avatarElement);
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = player.name;
+        
+        playerItem.appendChild(avatarContainer);
+        playerItem.appendChild(nameSpan);
         playersList.appendChild(playerItem);
       });
     }
@@ -1273,27 +1302,28 @@
       const allPlayers = window.adminGameData?.allPlayers || [];
       container.innerHTML = '';
       
-      const myParticipant = createAdminParticipantElement(adminName, true, isAdminMuted, false);
+      const myParticipant = createAdminParticipantElement(adminName, adminAvatar, true, isAdminMuted, false);
       container.appendChild(myParticipant);
       
       allPlayers.forEach(player => {
         if (player.name !== adminName) {
-          const participant = createAdminParticipantElement(player.name, false, false, false);
+          const participant = createAdminParticipantElement(player.name, player.avatar, false, false, false);
           container.appendChild(participant);
         }
       });
     }
 
-    function createAdminParticipantElement(name, isMe, muted, speaking) {
+    function createAdminParticipantElement(name, avatar, isMe, muted, speaking) {
       const div = document.createElement('div');
       div.className = 'voice-participant';
       div.dataset.participantName = name;
       if (speaking) div.classList.add('speaking');
       if (muted) div.classList.add('muted');
       
-      const avatar = document.createElement('div');
-      avatar.className = 'participant-avatar';
-      avatar.textContent = name.charAt(0).toUpperCase();
+      const avatarContainer = document.createElement('div');
+      avatarContainer.className = 'participant-avatar';
+      const avatarElement = createAvatarElement(avatar || 'avatar1', 40);
+      avatarContainer.appendChild(avatarElement);
       
       const info = document.createElement('div');
       info.className = 'participant-info';
@@ -1315,7 +1345,7 @@
       
       info.appendChild(nameEl);
       info.appendChild(status);
-      div.appendChild(avatar);
+      div.appendChild(avatarContainer);
       div.appendChild(info);
       
       return div;
