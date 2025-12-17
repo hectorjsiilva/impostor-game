@@ -346,6 +346,12 @@
         return;
       }
 
+      if (!currentGameId) {
+        showAlert('Error: No se pudo obtener el ID de la partida', 'danger');
+        console.error('❌ currentGameId es null o undefined');
+        return;
+      }
+
       try {
         console.log('🎮 Uniéndose a partida:', currentGameId, 'como:', adminName);
         
@@ -382,7 +388,10 @@
         socket.once('error', joinErrorHandler);
         
         // Unirse como admin/jugador
+        console.log('📡 Emitiendo join-as-admin:', { gameId: currentGameId });
         socket.emit('join-as-admin', { gameId: currentGameId });
+        
+        console.log('📡 Emitiendo join-game:', joinData);
         socket.emit('join-game', joinData);
         
       } catch (error) {
@@ -822,8 +831,6 @@
       window.adminTimeRemaining = data.timeRemaining;
       updateAdminTimerDisplay();
     });
-      }, 1000);
-    }
     
     socket.on('new-message', (data) => {
       const chatMessages = document.getElementById('adminChatMessages');
