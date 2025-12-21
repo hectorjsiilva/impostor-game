@@ -1524,6 +1524,8 @@
     let peer = null;
     let myStream = null;
     let peers = new Map(); // Map de peerId -> {call, audioElement, analyser}
+    let peerNames = new Map(); // Map de peerId -> playerName
+    let muteStatuses = new Map(); // Map de playerName -> isMuted
     let isInCall = false;
     let isMuted = false;
     let audioContext = null;
@@ -1875,31 +1877,29 @@
 
     // Actualizar indicador visual cuando alguien habla
     function updateParticipantSpeaking(peerId, isSpeaking) {
-      // Encontrar el nombre del jugador por peerId
       // El peerId tiene formato: gameId-socketId
-      const participants = document.querySelectorAll('.voice-participant');
-      
-      // Para mi propio peer
-      if (peerId === `${gameId}-${socket.id}`) {
-        const myParticipant = document.querySelector(`.voice-participant[data-participant-name="${playerName}"]`);
-        if (myParticipant) {
-          if (isSpeaking) {
-            myParticipant.classList.add('speaking');
-            const status = myParticipant.querySelector('.participant-status');
-            status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+      // Obtener el nombre del jugador asociado a este peerId
+      const name = peerNames.get(peerId) || (peerId === `${gameId}-${socket.id}` ? playerName : null);
+      if (!name) return;
+
+      const participant = document.querySelector(`.voice-participant[data-participant-name="${name}"]`);
+      if (!participant) return;
+
+      const status = participant.querySelector('.participant-status');
+      if (isSpeaking) {
+        participant.classList.add('speaking');
+        if (status) status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+      } else {
+        participant.classList.remove('speaking');
+        const muted = muteStatuses.get(name) || (name === playerName ? isMuted : false);
+        if (status) {
+          if (muted) {
+            status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
           } else {
-            myParticipant.classList.remove('speaking');
-            const status = myParticipant.querySelector('.participant-status');
-            if (isMuted) {
-              status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
-            } else {
-              status.innerHTML = '🎤 En llamada';
-            }
+            status.innerHTML = '🎤 En llamada';
           }
         }
       }
-      // Para otros peers, necesitamos mapear el peerId al nombre
-      // Esto se maneja en el evento 'peers-list'
     }
 
     // Eventos de Socket.io para coordinación de llamadas
@@ -1908,7 +1908,9 @@
       
       // Llamar a cada peer en la lista
       data.peers.forEach(peerInfo => {
-        if (peerInfo.peerId !== `${gameId}-${socket.id}` && !peers.has(peerInfo.peerId)) {
+        // Guardar mapeo peerId -> playerName para futuras actualizaciones de UI
+        peerNames.set(peerInfo.peerId, peerInfo.playerName);
+        if (peerInfo.peerId !== `${gameId}-${socket.id}` && !peers.has(peerInfo.peerId) && myStream) {
           console.log('📞 Llamando a:', peerInfo.playerName, peerInfo.peerId);
           const call = peer.call(peerInfo.peerId, myStream);
           setupCall(call);
@@ -1922,6 +1924,9 @@
       console.log('👤 Nuevo peer disponible:', data.playerName, data.peerId);
       
       // Si estoy en llamada, llamar al nuevo peer
+      // Guardar mapeo
+      peerNames.set(data.peerId, data.playerName);
+
       if (isInCall && myStream && data.peerId !== `${gameId}-${socket.id}`) {
         setTimeout(() => {
           const call = peer.call(data.peerId, myStream);
@@ -1946,6 +1951,8 @@
 
     socket.on('mute-status-update', (data) => {
       console.log('🔇 Estado de mute actualizado:', data.playerName, data.isMuted);
+      // Guardar el estado y actualizar la UI
+      muteStatuses.set(data.playerName, data.isMuted);
       updateVoiceParticipants();
     });
 
