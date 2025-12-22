@@ -1538,7 +1538,7 @@
       return new Promise((resolve, reject) => {
         const peerId = `${gameId}-${socket.id}`;
         
-        // Configurar Peer - en HTTPS de producción, no especificar puerto
+        // Configurar Peer con opciones más robustas
         const peerConfig = {
           host: window.location.hostname,
           path: '/peerjs',
@@ -1546,9 +1546,12 @@
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:stun1.l.google.com:19302' }
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' }
             ]
-          }
+          },
+          pingInterval: 5000,
+          iceTransportPolicy: 'all'
         };
         
         // Solo especificar puerto en desarrollo local
@@ -1561,9 +1564,16 @@
         peer = new Peer(peerId, peerConfig);
 
         peer.on('open', (id) => {
-          console.log('🎤 Peer conectado con ID:', id);
+          console.log('✅ Peer conectado exitosamente con ID:', id);
+          console.log('📍 Peer ID formato:', id);
           // Notificar al servidor que estoy listo para llamadas
           socket.emit('peer-ready', { gameId, peerId: id, playerName });
+          
+          // Timeout de seguridad
+          const timeout = setTimeout(() => {
+            console.warn('⚠️ No se recibió confirmación del servidor en 5 segundos');
+          }, 5000);
+          
           resolve();
         });
 
@@ -1577,21 +1587,37 @@
             setupCall(call);
           } else {
             console.warn('⚠️ Recibí llamada pero no tengo stream todavía');
+            // Reintentar en 1 segundo
+            setTimeout(() => {
+              if (myStream) {
+                console.log('✅ Reintentando responder llamada');
+                call.answer(myStream);
+                setupCall(call);
+              }
+            }, 1000);
           }
         });
 
         peer.on('error', (error) => {
-          console.error('❌ Error de Peer:', error);
-          console.error('❌ Detalles error:', error.type, error.message);
+          console.error('❌ Error de Peer:', error.type);
+          console.error('❌ Detalles error:', error.message);
+          console.error('❌ Stack:', error);
           reject(error);
         });
         
         peer.on('disconnected', () => {
-          console.warn('⚠️ Peer desconectado');
+          console.warn('⚠️ Peer desconectado - intentando reconectar...');
+          setTimeout(() => {
+            if (peer) {
+              console.log('🔄 Reconectando Peer...');
+              peer.reconnect();
+            }
+          }, 3000);
         });
         
         peer.on('close', () => {
-          console.warn('⚠️ Peer cerrado');
+          console.warn('⚠️ Peer cerrado completamente');
+          peer = null;
         });
       });
     }
@@ -1912,24 +1938,33 @@
       // El peerId tiene formato: gameId-socketId
       // Obtener el nombre del jugador asociado a este peerId
       const name = peerNames.get(peerId) || (peerId === `${gameId}-${socket.id}` ? playerName : null);
-      if (!name) return;
+      if (!name) {
+        console.warn('⚠️ No se encontró nombre para peerId:', peerId);
+        return;
+      }
 
       const participant = document.querySelector(`.voice-participant[data-participant-name="${name}"]`);
-      if (!participant) return;
+      if (!participant) {
+        console.warn('⚠️ No se encontró elemento para participante:', name);
+        return;
+      }
 
       const status = participant.querySelector('.participant-status');
+      if (!status) {
+        console.warn('⚠️ No se encontró status element para:', name);
+        return;
+      }
+
       if (isSpeaking) {
         participant.classList.add('speaking');
-        if (status) status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
+        status.innerHTML = '<div class="speaking-indicator"></div> Hablando...';
       } else {
         participant.classList.remove('speaking');
         const muted = muteStatuses.get(name) || (name === playerName ? isMuted : false);
-        if (status) {
-          if (muted) {
-            status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
-          } else {
-            status.innerHTML = '🎤 En llamada';
-          }
+        if (muted) {
+          status.innerHTML = '<span class="muted-indicator">🔇</span> Silenciado';
+        } else {
+          status.innerHTML = '🎤 En llamada';
         }
       }
     }

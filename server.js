@@ -19,12 +19,6 @@ const io = socketIO(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Configurar servidor PeerJS para WebRTC
-const peerServer = ExpressPeerServer(server, {
-  debug: true,
-  path: '/peerjs'
-});
-
 // Almacenamiento de partidas en memoria
 const games = new Map();
 
@@ -64,8 +58,23 @@ app.use((req, res, next) => {
 // Servir archivos estáticos
 app.use(express.static('public'));
 
-// Montar servidor PeerJS
+// Configurar servidor PeerJS DESPUÉS de los middleware pero ANTES de las rutas
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
+  path: '/peerjs',
+  allow_discovery: true
+});
+
 app.use('/peerjs', peerServer);
+
+// Log de eventos PeerJS
+peerServer.on('connection', (client) => {
+  console.log(`✅ PeerJS cliente conectado: ${client.getId()}`);
+});
+
+peerServer.on('disconnect', (client) => {
+  console.log(`❌ PeerJS cliente desconectado: ${client.getId()}`);
+});
 
 // Middleware de autenticación
 const requireAuth = (req, res, next) => {
